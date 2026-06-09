@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  passwordHash          String
+  balance               Float     @default(0)
+  subscriptionStatus    SubscriptionStatus @default(ACTIVE)
+  subscriptionPlanId    String?
+  subscriptionExpiresAt DateTime?
+  trafficUsed           BigInt    @default(0)
+  trafficLimit          BigInt    @default(0)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  subscriptionPlan      SubscriptionPlan?
+  orders                Order[]
+  connections           ConnectionLog[]
+}
+
+model SubscriptionPlan {
+  id                String          @id @default(uuid())
+  name              String
+  durationDays      Int
+  monthlyTraffic    BigInt
+  price             Float
+  isActive          Boolean         @default(true)
+  displayOrder      Int             @default(0)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  users             User[]
+}
+
+model Order {
+  id                     String             @id @default(uuid())
+  userId                 String
+  planId                 String
+  amount                 Float
+  paymentMethod          String
+  status                 OrderStatus        @default(PENDING)
+  payUrl                 String?
+  paymentTransactionId   String?
+  paidAt                 DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  user                  User
+  plan                   SubscriptionPlan
+}
+
+model Node {
+  id           String   @id @default(uuid())
+  name         String
+  region       String
+  protocol     String
+  address      String
+  port         Int
+  path         String?
+  serverName   String?
+  delay        Int      @default(0)
+  status       String   @default("online")
+  isFree       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ConnectionLog {
+  id            String   @id @default(uuid())
+  userId        String
+  nodeId        String
+  connectAt     DateTime
+  disconnectAt  DateTime?
+  duration      Int      @default(0)
+  traffic       BigInt   @default(0)
+  status        String?
+  createdAt     DateTime @default(now())
+
+  user          User
+  node          Node
+}
+
+model SystemLog {
+  id           String   @id @default(uuid())
+  level        String   @default("info")
+  message      String
+  errorCode    String?
+  userId       String?
+  ipAddress    String?
+  createdAt    DateTime @default(now())
+}
