@@ -19,6 +19,7 @@ const subscription_module_1 = require("./subscription/subscription.module");
 const order_module_1 = require("./order/order.module");
 const vpn_module_1 = require("./vpn/vpn.module");
 const common_module_1 = require("./common/common.module");
+const payment_module_1 = require("./payment/payment.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -36,7 +37,8 @@ exports.AppModule = AppModule = __decorate([
                     type: 'postgres',
                     url: configService.get('DATABASE_URL'),
                     entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                    synchronize: true,
+                    synchronize: false,
+                    logging: true,
                 }),
             }),
             common_module_1.CommonModule,
@@ -46,6 +48,7 @@ exports.AppModule = AppModule = __decorate([
             subscription_module_1.SubscriptionModule,
             order_module_1.OrderModule,
             vpn_module_1.VpnModule,
+            payment_module_1.PaymentModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

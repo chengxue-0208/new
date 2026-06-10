@@ -16,19 +16,6 @@ const vpn_config_entity_1 = require("../entities/vpn-config.entity");
 const order_entity_1 = require("../entities/order.entity");
 const user_subscription_entity_1 = require("../entities/user-subscription.entity");
 let User = class User {
-    constructor() {
-        this.id = "";
-        this.email = "";
-        this.passwordHash = "";
-        this.balance = 0;
-        this.subscriptionStatus = "";
-        this.subscriptionPlanId = "";
-        this.subscriptionExpiresAt = new Date();
-        this.trafficUsed = 0;
-        this.trafficLimit = 0;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
-    }
 };
 exports.User = User;
 __decorate([
@@ -36,15 +23,15 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255 }),
     __metadata("design:type", String)
 ], User.prototype, "passwordHash", void 0);
 __decorate([
-    (0, typeorm_1.Column)('decimal', { precision: 10, scale: 2, default: 0 }),
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: '0' }),
     __metadata("design:type", Number)
 ], User.prototype, "balance", void 0);
 __decorate([
@@ -56,11 +43,11 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "subscriptionStatus", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'varchar', length: 255, nullable: true }),
     __metadata("design:type", String)
 ], User.prototype, "subscriptionPlanId", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }),
+    (0, typeorm_1.Column)({ type: 'timestamp with time zone', nullable: true }),
     __metadata("design:type", Date)
 ], User.prototype, "subscriptionExpiresAt", void 0);
 __decorate([
@@ -72,11 +59,11 @@ __decorate([
     __metadata("design:type", Number)
 ], User.prototype, "trafficLimit", void 0);
 __decorate([
-    (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
+    (0, typeorm_1.CreateDateColumn)({ type: 'timestamp with time zone', name: 'created_at' }),
     __metadata("design:type", Date)
 ], User.prototype, "createdAt", void 0);
 __decorate([
-    (0, typeorm_1.UpdateDateColumn)({ name: 'updated_at' }),
+    (0, typeorm_1.UpdateDateColumn)({ type: 'timestamp with time zone', name: 'updated_at' }),
     __metadata("design:type", Date)
 ], User.prototype, "updatedAt", void 0);
 __decorate([

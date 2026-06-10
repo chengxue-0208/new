@@ -28,21 +28,26 @@ let AuthService = class AuthService {
             where: { email: registerDto.email },
         });
         if (existingUser) {
-            throw new Error('User already exists');
+            return {
+                statusCode: 403,
+                message: 'User already exists'
+            };
         }
         const user = await this.userRepository.create({
             email: registerDto.email,
             passwordHash: registerDto.password,
             balance: 0,
             subscriptionStatus: 'ACTIVE',
+            trafficUsed: 0,
+            trafficLimit: 0,
         });
-        await this.userRepository.save(user);
+        const savedUser = await this.userRepository.save(user);
         return {
             user: {
-                id: user.id,
-                email: user.email,
+                id: savedUser.id,
+                email: savedUser.email,
             },
-            accessToken: this.jwtService.sign({ sub: user.id }),
+            accessToken: this.jwtService.sign({ sub: savedUser.id }),
         };
     }
     async login(loginDto) {

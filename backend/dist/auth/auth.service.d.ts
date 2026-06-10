@@ -9,11 +9,18 @@ export declare class AuthService {
         email: string;
         password: string;
     }): Promise<{
+        statusCode: number;
+        message: string;
+        user?: undefined;
+        accessToken?: undefined;
+    } | {
         user: {
             id: string;
             email: string;
         };
         accessToken: string;
+        statusCode?: undefined;
+        message?: undefined;
     }>;
     login(loginDto: {
         email: string;

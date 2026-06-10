@@ -1,36 +1,42 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = require("@nestjs/core");
-const app_module_1 = require("./app.module");
-const typeorm_1 = require("typeorm");
-const seed_1 = require("./seed");
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { DataSource, createConnection } from 'typeorm';
+import { seedDatabase } from './seed';
+
 async function bootstrap() {
-    const app = await core_1.NestFactory.create(app_module_1.AppModule);
-    app.enableCors();
-    const dataSource = new typeorm_1.DataSource({
-        type: 'postgres',
-        host: 'localhost',
-        port: 5432,
-        username: 'admin',
-        password: 'admin1234',
-        database: 'vpn_db',
-        entities: [
-            './src/entities/**/*.entity.ts',
-        ],
-        synchronize: false,
-    });
-    try {
-        await dataSource.initialize();
-        console.log('✅ Database connected');
-        await dataSource.query(`
+  const app = await NestFactory.create(AppModule);
+
+  app.enableCors();
+
+  const dataSource = new DataSource({
+    type: 'postgres',
+    host: 'localhost',
+    port: 5432,
+    username: 'admin',
+    password: 'admin1234',
+    database: 'vpn_db',
+    entities: [
+      './src/entities/**/*.entity.ts',
+    ],
+    synchronize: false,
+  });
+
+  try {
+    await dataSource.initialize();
+    console.log('✅ Database connected');
+
+    // Check if tables exist, if not create them and seed
+    await dataSource.query(`
       SELECT table_name FROM information_schema.tables
       WHERE table_schema = 'public' AND table_name IN ('users', 'nodes', 'subscription_plans', 'orders', 'connection_logs', 'system_logs')
     `);
-        const tables = await dataSource.query('SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = \'public\';');
-        const tableCount = tables[0].count;
-        if (tableCount === 0) {
-            console.log('🚀 Creating tables...');
-            await dataSource.query(`
+
+    const tables = await dataSource.query('SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = \'public\';');
+    const tableCount = tables[0].count;
+
+    if (tableCount === 0) {
+      console.log('🚀 Creating tables...');
+      await dataSource.query(`
         CREATE TABLE users (
           id UUID PRIMARY KEY,
           email VARCHAR(255) UNIQUE NOT NULL,
@@ -45,7 +51,8 @@ async function bootstrap() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            await dataSource.query(`
+
+      await dataSource.query(`
         CREATE TABLE nodes (
           id UUID PRIMARY KEY,
           name VARCHAR(255) NOT NULL,
@@ -62,7 +69,8 @@ async function bootstrap() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            await dataSource.query(`
+
+      await dataSource.query(`
         CREATE TABLE subscription_plans (
           id UUID PRIMARY KEY,
           name VARCHAR(100) NOT NULL,
@@ -75,7 +83,8 @@ async function bootstrap() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            await dataSource.query(`
+
+      await dataSource.query(`
         CREATE TABLE orders (
           id UUID PRIMARY KEY,
           user_id UUID NOT NULL,
@@ -90,7 +99,8 @@ async function bootstrap() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            await dataSource.query(`
+
+      await dataSource.query(`
         CREATE TABLE connection_logs (
           id UUID PRIMARY KEY,
           user_id UUID NOT NULL,
@@ -103,7 +113,8 @@ async function bootstrap() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            await dataSource.query(`
+
+      await dataSource.query(`
         CREATE TABLE system_logs (
           id UUID PRIMARY KEY,
           level VARCHAR(20) DEFAULT 'info',
@@ -114,19 +125,23 @@ async function bootstrap() {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
-            console.log('✅ Tables created');
-            await (0, seed_1.seedDatabase)(dataSource);
-        }
-        else {
-            console.log('✅ Database already contains data');
-        }
-        await app.listen(3000);
-        console.log('🚀 Server is running on http://localhost:3000');
+
+      console.log('✅ Tables created');
+
+      // Seed data
+      await seedDatabase(dataSource);
+    } else {
+      console.log('✅ Database already contains data');
     }
-    catch (error) {
-        console.error('❌ Error:', error);
-        process.exit(1);
-    }
+
+    // Start application
+    await app.listen(3000);
+    console.log('🚀 Server is running on http://localhost:3000');
+
+  } catch (error) {
+    console.error('❌ Error:', error);
+    process.exit(1);
+  }
 }
+
 bootstrap();
-//# sourceMappingURL=seed-bootstrap.js.map

@@ -1,8 +1,8 @@
 # VPN 服务 API 文档
 
 > 版本: 1.0.0
-> 日期: 2026-06-09
-> 基础URL: `http://localhost:3000/api`
+> 日期: 2026-06-10
+> 基础URL: `http://localhost:3000`
 
 ## 目录
 
@@ -44,8 +44,20 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": { ... }
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com"
+  },
+  "accessToken": "jwt-token"
+}
+```
+
+错误响应：
+
+```javascript
+{
+  "message": "Error message",
+  "statusCode": 401
 }
 ```
 
@@ -60,7 +72,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-POST /api/auth/register
+POST /auth/register
 Content-Type: application/json
 
 {
@@ -73,14 +85,11 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "user": {
-      "id": "user-id",
-      "email": "user@example.com"
-    },
-    "accessToken": "jwt-token"
-  }
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com"
+  },
+  "accessToken": "jwt-token"
 }
 ```
 
@@ -91,7 +100,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-POST /api/auth/login
+POST /auth/login
 Content-Type: application/json
 
 {
@@ -104,14 +113,11 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "user": {
-      "id": "user-id",
-      "email": "user@example.com"
-    },
-    "accessToken": "jwt-token"
-  }
+  "user": {
+    "id": "user-id",
+    "email": "user@example.com"
+  },
+  "accessToken": "jwt-token"
 }
 ```
 
@@ -122,7 +128,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-GET /api/user/profile
+GET /user/profile
 Authorization: Bearer {accessToken}
 ```
 
@@ -130,15 +136,12 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "user-id",
-    "email": "user@example.com",
-    "balance": 100.00,
-    "subscriptionStatus": "ACTIVE",
-    "trafficUsed": 1073741824,
-    "trafficLimit": 10737418240
-  }
+  "id": "user-id",
+  "email": "user@example.com",
+  "balance": 100.00,
+  "subscriptionStatus": "ACTIVE",
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -153,48 +156,14 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/nodes
+GET /nodes
 ```
 
 **响应：**
 
 ```javascript
-{
-  "success": true,
-  "data": [
-    {
-      "id": "node-id",
-      "name": "新加坡节点1",
-      "region": "新加坡",
-      "protocol": "vless",
-      "address": "sg1.example.com",
-      "port": 443,
-      "path": "/vless",
-      "serverName": "sg1.example.com",
-      "delay": 45,
-      "status": "online",
-      "isFree": false
-    }
-  ]
-}
-```
-
-### 2. 获取单个节点信息
-
-获取指定节点的详细信息。
-
-**请求：**
-
-```http
-GET /api/nodes/{nodeId}
-```
-
-**响应：**
-
-```javascript
-{
-  "success": true,
-  "data": {
+[
+  {
     "id": "node-id",
     "name": "新加坡节点1",
     "region": "新加坡",
@@ -207,6 +176,34 @@ GET /api/nodes/{nodeId}
     "status": "online",
     "isFree": false
   }
+]
+```
+
+### 2. 获取单个节点信息
+
+获取指定节点的详细信息。
+
+**请求：**
+
+```http
+GET /nodes/{nodeId}
+```
+
+**响应：**
+
+```javascript
+{
+  "id": "node-id",
+  "name": "新加坡节点1",
+  "region": "新加坡",
+  "protocol": "vless",
+  "address": "sg1.example.com",
+  "port": 443,
+  "path": "/vless",
+  "serverName": "sg1.example.com",
+  "delay": 45,
+  "status": "online",
+  "isFree": false
 }
 ```
 
@@ -217,18 +214,15 @@ GET /api/nodes/{nodeId}
 **请求：**
 
 ```http
-GET /api/node/delay/{nodeId}
+GET /node/delay/{nodeId}
 ```
 
 **响应：**
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "nodeId": "node-id",
-    "delay": 45
-  }
+  "nodeId": "node-id",
+  "delay": 45
 }
 ```
 
@@ -239,22 +233,19 @@ GET /api/node/delay/{nodeId}
 **请求：**
 
 ```http
-POST /api/node/delay/update
+POST /node/delay/update
 ```
 
 **响应：**
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "delays": [...],
-    "stats": {
-      "total": 10,
-      "online": 8,
-      "offline": 2,
-      "avgDelay": 65
-    }
+  "delays": [...],
+  "stats": {
+    "total": 10,
+    "online": 8,
+    "offline": 2,
+    "avgDelay": 65
   }
 }
 ```
@@ -266,20 +257,17 @@ POST /api/node/delay/update
 **请求：**
 
 ```http
-GET /api/node/delay/stats
+GET /node/delay/stats
 ```
 
 **响应：**
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "total": 10,
-    "online": 8,
-    "offline": 2,
-    "avgDelay": 65
-  }
+  "total": 10,
+  "online": 8,
+  "offline": 2,
+  "avgDelay": 65
 }
 ```
 
@@ -294,7 +282,7 @@ GET /api/node/delay/stats
 **请求：**
 
 ```http
-POST /api/vpn/connect
+POST /vpn/connect
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -307,15 +295,12 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "vpn-config-id",
-    "nodeId": "node-id",
-    "protocol": "vless",
-    "address": "sg1.example.com",
-    "port": 443,
-    "createdAt": "2026-06-09T10:00:00.000Z"
-  }
+  "id": "vpn-config-id",
+  "nodeId": "node-id",
+  "protocol": "vless",
+  "address": "sg1.example.com",
+  "port": 443,
+  "createdAt": "2026-06-09T10:00:00.000Z"
 }
 ```
 
@@ -326,7 +311,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-POST /api/vpn/disconnect
+POST /vpn/disconnect
 Authorization: Bearer {accessToken}
 ```
 
@@ -334,10 +319,7 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "message": "Disconnected"
-  }
+  "message": "Disconnected"
 }
 ```
 
@@ -348,7 +330,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/vpn/status
+GET /vpn/status
 Authorization: Bearer {accessToken}
 ```
 
@@ -356,17 +338,14 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "connected": true,
-    "node": {
-      "id": "node-id",
-      "name": "新加坡节点1",
-      "delay": 45
-    },
-    "trafficUsed": 1073741824,
-    "trafficLimit": 10737418240
-  }
+  "connected": true,
+  "node": {
+    "id": "node-id",
+    "name": "新加坡节点1",
+    "delay": 45
+  },
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -377,7 +356,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/vpn/config
+GET /vpn/config
 Authorization: Bearer {accessToken}
 ```
 
@@ -385,14 +364,11 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "protocol": "vless",
-    "address": "sg1.example.com",
-    "port": 443,
-    "path": "/vless",
-    "serverName": "sg1.example.com"
-  }
+  "protocol": "vless",
+  "address": "sg1.example.com",
+  "port": 443,
+  "path": "/vless",
+  "serverName": "sg1.example.com"
 }
 ```
 
@@ -407,26 +383,23 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/subscription/plans
+GET /subscription/plans
 ```
 
 **响应：**
 
 ```javascript
-{
-  "success": true,
-  "data": [
-    {
-      "id": "plan-id",
-      "name": "月度套餐",
-      "durationDays": 30,
-      "monthlyTraffic": 10737418240,
-      "price": 29.90,
-      "isActive": true,
-      "displayOrder": 1
-    }
-  ]
-}
+[
+  {
+    "id": "plan-id",
+    "name": "月度套餐",
+    "durationDays": 30,
+    "monthlyTraffic": 10737418240,
+    "price": 29.90,
+    "isActive": true,
+    "displayOrder": 1
+  }
+]
 ```
 
 ### 2. 获取我的订阅
@@ -436,7 +409,7 @@ GET /api/subscription/plans
 **请求：**
 
 ```http
-GET /api/subscription/my
+GET /subscription/my
 Authorization: Bearer {accessToken}
 ```
 
@@ -444,24 +417,21 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "subscription": {
-      "id": "subscription-id",
-      "planId": "plan-id",
-      "plan": {
-        "name": "月度套餐",
-        "durationDays": 30
-      },
-      "startAt": "2026-06-01T00:00:00.000Z",
-      "endAt": "2026-07-01T00:00:00.000Z",
-      "status": "ACTIVE",
-      "trafficUsed": 1073741824,
-      "trafficLimit": 10737418240
+  "subscription": {
+    "id": "subscription-id",
+    "planId": "plan-id",
+    "plan": {
+      "name": "月度套餐",
+      "durationDays": 30
     },
+    "startAt": "2026-06-01T00:00:00.000Z",
+    "endAt": "2026-07-01T00:00:00.000Z",
+    "status": "ACTIVE",
     "trafficUsed": 1073741824,
     "trafficLimit": 10737418240
-  }
+  },
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -472,7 +442,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-POST /api/subscription/purchase
+POST /subscription/purchase
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -486,12 +456,9 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "orderId": "order-id",
-    "payUrl": "https://openapi.alipay.com/gateway.do?...",
-    "amount": 29.90
-  }
+  "orderId": "order-id",
+  "payUrl": "https://openapi.alipay.com/gateway.do?...",
+  "amount": 29.90
 }
 ```
 
@@ -506,32 +473,29 @@ Content-Type: application/json
 **请求：**
 
 ```http
-GET /api/orders
+GET /orders
 Authorization: Bearer {accessToken}
 ```
 
 **响应：**
 
 ```javascript
-{
-  "success": true,
-  "data": [
-    {
-      "id": "order-id",
-      "userId": "user-id",
-      "planId": "plan-id",
-      "amount": 29.90,
-      "paymentMethod": "alipay",
-      "status": "PAID",
-      "paymentTransactionId": "alipay_001",
-      "paidAt": "2026-06-09T10:00:00.000Z",
-      "createdAt": "2026-06-09T09:00:00.000Z"
-    }
-  ],
+[
+  {
+    "id": "order-id",
+    "userId": "user-id",
+    "planId": "plan-id",
+    "amount": 29.90,
+    "paymentMethod": "alipay",
+    "status": "PAID",
+    "paymentTransactionId": "alipay_001",
+    "paidAt": "2026-06-09T10:00:00.000Z",
+    "createdAt": "2026-06-09T09:00:00.000Z"
+  },
   "total": 10,
   "page": 1,
   "limit": 20
-}
+]
 ```
 
 ### 2. 获取订单详情
@@ -541,7 +505,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/orders/{orderId}
+GET /orders/{orderId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -549,19 +513,17 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "order-id",
-    "userId": "user-id",
-    "planId": "plan-id",
-    "amount": 29.90,
-    "paymentMethod": "alipay",
-    "status": "PAID",
-    "paymentTransactionId": "alipay_001",
-    "paidAt": "2026-06-09T10:00:00.000Z",
-    "plan": {
-      "name": "月度套餐"
-    }
+  "id": "order-id",
+  "userId": "user-id",
+  "planId": "plan-id",
+  "amount": 29.90,
+  "paymentMethod": "alipay",
+  "status": "PAID",
+  "paymentTransactionId": "alipay_001",
+  "paidAt": "2026-06-09T10:00:00.000Z",
+  "createdAt": "2026-06-09T09:00:00.000Z",
+  "plan": {
+    "name": "月度套餐"
   }
 }
 ```
@@ -577,7 +539,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/user/profile
+GET /user/profile
 Authorization: Bearer {accessToken}
 ```
 
@@ -585,15 +547,12 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "user-id",
-    "email": "user@example.com",
-    "balance": 100.00,
-    "subscriptionStatus": "ACTIVE",
-    "trafficUsed": 1073741824,
-    "trafficLimit": 10737418240
-  }
+  "id": "user-id",
+  "email": "user@example.com",
+  "balance": 100.00,
+  "subscriptionStatus": "ACTIVE",
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -604,7 +563,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-PUT /api/user/profile
+PUT /user/profile
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -617,15 +576,12 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "user-id",
-    "email": "new@example.com",
-    "balance": 100.00,
-    "subscriptionStatus": "ACTIVE",
-    "trafficUsed": 1073741824,
-    "trafficLimit": 10737418240
-  }
+  "id": "user-id",
+  "email": "new@example.com",
+  "balance": 100.00,
+  "subscriptionStatus": "ACTIVE",
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -650,10 +606,7 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "message": "Password updated successfully"
-  }
+  "message": "Password updated successfully"
 }
 ```
 
@@ -672,14 +625,11 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "used": 1073741824,
-    "limit": 10737418240,
-    "percentage": 10,
-    "totalUsed": 1073741824,
-    "remaining": 9663407072
-  }
+  "used": 1073741824,
+  "limit": 10737418240,
+  "percentage": 10,
+  "totalUsed": 1073741824,
+  "remaining": 9663407072
 }
 ```
 
@@ -694,7 +644,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-POST /api/payment/create
+POST /payment/create
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -708,12 +658,9 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "orderId": "order-id",
-    "payUrl": "https://openapi.alipay.com/gateway.do?...",
-    "amount": 29.90
-  }
+  "orderId": "order-id",
+  "payUrl": "https://openapi.alipay.com/gateway.do?...",
+  "amount": 29.90
 }
 ```
 
@@ -724,7 +671,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-POST /api/payment/callback/alipay?{queryParams}
+POST /payment/callback/alipay?{queryParams}
 ```
 
 **响应：**
@@ -743,7 +690,7 @@ POST /api/payment/callback/alipay?{queryParams}
 **请求：**
 
 ```http
-POST /api/payment/callback/wechat
+POST /payment/callback/wechat
 Content-Type: application/json
 
 {xmlData}
@@ -765,7 +712,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-GET /api/payment/verify?{queryParams}
+GET /payment/verify?{queryParams}
 ```
 
 **响应：**
@@ -790,7 +737,7 @@ GET /api/payment/verify?{queryParams}
 **请求：**
 
 ```http
-GET /api/admin/stats
+GET /admin/stats
 Authorization: Bearer {accessToken}
 ```
 
@@ -798,17 +745,14 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "totalUsers": 1000,
-    "activeUsers": 800,
-    "totalNodes": 50,
-    "onlineNodes": 45,
-    "totalOrders": 500,
-    "successfulOrders": 480,
-    "totalRevenue": 29900,
-    "totalTrafficUsed": 1073741824
-  }
+  "totalUsers": 1000,
+  "activeUsers": 800,
+  "totalNodes": 50,
+  "onlineNodes": 45,
+  "totalOrders": 500,
+  "successfulOrders": 480,
+  "totalRevenue": 29900,
+  "totalTrafficUsed": 1073741824
 }
 ```
 
@@ -819,7 +763,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/users?page=1&limit=20
+GET /admin/users?page=1&limit=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -827,13 +771,10 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "users": [...],
-    "total": 1000,
-    "page": 1,
-    "limit": 20
-  }
+  "users": [...],
+  "total": 1000,
+  "page": 1,
+  "limit": 20
 }
 ```
 
@@ -844,7 +785,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/users/{userId}
+GET /admin/users/{userId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -852,15 +793,12 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "user-id",
-    "email": "user@example.com",
-    "balance": 100.00,
-    "subscriptionStatus": "ACTIVE",
-    "trafficUsed": 1073741824,
-    "trafficLimit": 10737418240
-  }
+  "id": "user-id",
+  "email": "user@example.com",
+  "balance": 100.00,
+  "subscriptionStatus": "ACTIVE",
+  "trafficUsed": 1073741824,
+  "trafficLimit": 10737418240
 }
 ```
 
@@ -871,28 +809,25 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/nodes
+GET /admin/nodes
 Authorization: Bearer {accessToken}
 ```
 
 **响应：**
 
 ```javascript
-{
-  "success": true,
-  "data": [
-    {
-      "id": "node-id",
-      "name": "新加坡节点1",
-      "region": "新加坡",
-      "protocol": "vless",
-      "address": "sg1.example.com",
-      "port": 443,
-      "delay": 45,
-      "status": "online"
-    }
-  ]
-}
+[
+  {
+    "id": "node-id",
+    "name": "新加坡节点1",
+    "region": "新加坡",
+    "protocol": "vless",
+    "address": "sg1.example.com",
+    "port": 443,
+    "delay": 45,
+    "status": "online"
+  }
+]
 ```
 
 ### 5. 创建节点
@@ -902,7 +837,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-POST /api/admin/nodes
+POST /admin/nodes
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -921,11 +856,8 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "new-node-id",
-    "name": "新节点"
-  }
+  "id": "new-node-id",
+  "name": "新节点"
 }
 ```
 
@@ -936,7 +868,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-PUT /api/admin/nodes/{nodeId}
+PUT /admin/nodes/{nodeId}
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -950,11 +882,8 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "node-id",
-    "name": "更新后的节点"
-  }
+  "id": "node-id",
+  "name": "更新后的节点"
 }
 ```
 
@@ -965,7 +894,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-DELETE /api/admin/nodes/{nodeId}
+DELETE /admin/nodes/{nodeId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -973,10 +902,7 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "message": "Node deleted successfully"
-  }
+  "message": "Node deleted successfully"
 }
 ```
 
@@ -987,7 +913,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/orders?page=1&limit=20
+GET /admin/orders?page=1&limit=20
 Authorization: Bearer {accessToken}
 ```
 
@@ -995,13 +921,10 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "orders": [...],
-    "total": 500,
-    "page": 1,
-    "limit": 20
-  }
+  "orders": [...],
+  "total": 500,
+  "page": 1,
+  "limit": 20
 }
 ```
 
@@ -1012,7 +935,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/logs?page=1&limit=50
+GET /admin/logs?page=1&limit=50
 Authorization: Bearer {accessToken}
 ```
 
@@ -1020,13 +943,10 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "logs": [...],
-    "total": 1000,
-    "page": 1,
-    "limit": 50
-  }
+  "logs": [...],
+  "total": 1000,
+  "page": 1,
+  "limit": 50
 }
 ```
 
@@ -1037,7 +957,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-DELETE /api/admin/logs/{logId}
+DELETE /admin/logs/{logId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -1045,10 +965,7 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "message": "Log deleted successfully"
-  }
+  "message": "Log deleted successfully"
 }
 ```
 
@@ -1059,25 +976,22 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/admin/subscription-plans
+GET /admin/subscription-plans
 Authorization: Bearer {accessToken}
 ```
 
 **响应：**
 
 ```javascript
-{
-  "success": true,
-  "data": [
-    {
-      "id": "plan-id",
-      "name": "月度套餐",
-      "durationDays": 30,
-      "price": 29.90,
-      "isActive": true
-    }
-  ]
-}
+[
+  {
+    "id": "plan-id",
+    "name": "月度套餐",
+    "durationDays": 30,
+    "price": 29.90,
+    "isActive": true
+  }
+]
 ```
 
 ### 12. 创建订阅套餐
@@ -1087,7 +1001,7 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-POST /api/admin/subscription-plans
+POST /admin/subscription-plans
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -1105,11 +1019,8 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "new-plan-id",
-    "name": "新套餐"
-  }
+  "id": "new-plan-id",
+  "name": "新套餐"
 }
 ```
 
@@ -1120,7 +1031,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-PUT /api/admin/subscription-plans/{planId}
+PUT /admin/subscription-plans/{planId}
 Authorization: Bearer {accessToken}
 Content-Type: application/json
 
@@ -1134,11 +1045,8 @@ Content-Type: application/json
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "id": "plan-id",
-    "name": "更新后的套餐"
-  }
+  "id": "plan-id",
+  "name": "更新后的套餐"
 }
 ```
 
@@ -1149,7 +1057,7 @@ Content-Type: application/json
 **请求：**
 
 ```http
-DELETE /api/admin/subscription-plans/{planId}
+DELETE /admin/subscription-plans/{planId}
 Authorization: Bearer {accessToken}
 ```
 
@@ -1157,10 +1065,7 @@ Authorization: Bearer {accessToken}
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "message": "Subscription plan deleted successfully"
-  }
+  "message": "Subscription plan deleted successfully"
 }
 ```
 
@@ -1175,19 +1080,16 @@ Authorization: Bearer {accessToken}
 **请求：**
 
 ```http
-GET /api/health
+GET /health
 ```
 
 **响应：**
 
 ```javascript
 {
-  "success": true,
-  "data": {
-    "status": "ok",
-    "version": "1.0.0",
-    "timestamp": "2026-06-09T10:00:00.000Z"
-  }
+  "status": "ok",
+  "version": "1.0.0",
+  "timestamp": "2026-06-09T10:00:00.000Z"
 }
 ```
 
@@ -1199,9 +1101,8 @@ GET /api/health
 
 ```javascript
 {
-  "success": false,
   "message": "Error message",
-  "error": "Error code"
+  "statusCode": 401
 }
 ```
 
@@ -1227,12 +1128,9 @@ GET /api/health
 
 ## 更新记录
 
-### v1.0.0 (2026-06-09)
+### v1.0.0 (2026-06-10)
 
-- 初始版本
-- 实现基础认证和用户管理
-- 实现VPN连接功能
-- 实现节点管理功能
-- 实现订阅管理功能
-- 实现支付功能（支付宝、微信）
-- 实现管理后台功能
+- 更新基础 URL 为 `http://localhost:3000`
+- 更新所有接口路径，移除 `/api` 前缀
+- 修正响应格式，移除 `success` 和 `data` 字段
+- 更新日期至 2026-06-10
