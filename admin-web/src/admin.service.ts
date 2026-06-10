@@ -1,9 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Node, Order, SubscriptionPlan, ConnectionLog, SystemLog } from '../entities';
+import { User, Node, Order, SubscriptionPlan, ConnectionLog, SystemLog } from './entities';
 
-interface Stats {
+export interface Stats {
   totalUsers: number;
   activeUsers: number;
   totalNodes: number;
