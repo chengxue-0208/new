@@ -5,30 +5,24 @@ import api from '../services/api';
 
 const { Title, Paragraph, Text } = Typography;
 
+const dashboardNameStyle = {
+  fontSize: '64px',
+  fontWeight: 'bold',
+  margin: '0 0 16px 0',
+  textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
+};
+
 export default function Dashboard() {
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => api.get('/dashboard/stats').then((res: any) => res.data),
   });
 
-  if (isLoading) {
-    return <div>加载中...</div>;
-  }
-
   return (
     <div>
       <Text
-        style={{
-          fontSize: '64px',
-          fontWeight: 'bold',
-        }}
+        style={dashboardNameStyle}
         className="gradient-text"
-        style={{
-          margin: '0 0 16px 0',
-        }}
-        style={{
-          textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
-        }}
       >
         周承学
       </Text>
