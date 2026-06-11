@@ -1,15 +1,43 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Table, Button, Space, Tag, Input, Modal, Form, Select } from 'antd';
+import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm } from 'antd';
 import { useState } from 'react';
-import { PlusOutlined } from '@ant-design/icons';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { PlusOutlined, EditOutlined, DeleteOutlined, HealthOutlined, DashboardOutlined } from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
 const { TextArea } = Input;
 
+interface Node {
+  id: string;
+  name: string;
+  region: string;
+  ipAddress: string;
+  serverAddress?: string;
+  port?: number;
+  status: 'online' | 'offline' | 'maintenance';
+  statusMessage?: string;
+  uptime: number;
+  load: number;
+  maxConnections: number;
+  currentConnections: number;
+  bandwidth: number;
+}
+
+interface NodeFormData {
+  name: string;
+  region: string;
+  ipAddress: string;
+  serverAddress?: string;
+  port?: number;
+  maxConnections: number;
+}
+
 export default function Nodes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
+  const [editNode, setEditNode] = useState<Node | null>(null);
   const [form] = Form.useForm();
+  const queryClient = useQueryClient();
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['nodes'],
@@ -17,13 +45,62 @@ export default function Nodes() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: any) => api.post('/nodes', values),
+    mutationFn: (values: NodeFormData) => {
+      const url = editNode ? `/nodes/${editNode.id}` : '/nodes';
+      return editNode ? api.put(url, values) : api.post(url, values);
+    },
     onSuccess: () => {
-      refetch();
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
       setIsModalOpen(false);
+      setIsHealthModalOpen(false);
+      setEditNode(null);
       form.resetFields();
     },
   });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.delete(`/nodes/${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+    },
+  });
+
+  const healthMutation = useMutation({
+    mutationFn: () => api.get('/nodes/health'),
+    onSuccess: (data: any) => {
+      setIsHealthModalOpen(true);
+    },
+  });
+
+  const handleAdd = () => {
+    setEditNode(null);
+    form.resetFields();
+    form.setFieldsValue({
+      maxConnections: 10,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (node: Node) => {
+    setEditNode(node);
+    form.setFieldsValue({
+      name: node.name,
+      region: node.region,
+      ipAddress: node.ipAddress,
+      serverAddress: node.serverAddress,
+      port: node.port,
+      maxConnections: node.maxConnections,
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id);
+  };
+
+  const handleCheckHealth = () => {
+    healthMutation.mutate();
+  };
 
   const columns = [
     {
@@ -37,45 +114,103 @@ export default function Nodes() {
       key: 'name',
     },
     {
-      title: '类型',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type: string) => <Tag color="blue">{type}</Tag>,
+      title: '区域',
+      dataIndex: 'region',
+      key: 'region',
+      render: (region: string) => <Tag color="cyan">{region}</Tag>,
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'online' ? 'green' : status === 'offline' ? 'red' : 'orange'}>
-          {status}
-        </Tag>
+      render: (status: string) => {
+        const colorMap: Record<string, string> = {
+          'online': 'green',
+          'offline': 'red',
+          'maintenance': 'orange'
+        };
+        return <Tag color={colorMap[status] || 'default'}>{status === 'online' ? '在线' : status === 'offline' ? '离线' : '维护中'}</Tag>;
+      },
+    },
+    {
+      title: '服务器',
+      key: 'server',
+      render: (_: any, node: Node) => (
+        <Tooltip title={node.ipAddress}>
+          <span>{node.serverAddress || node.ipAddress}</span>
+        </Tooltip>
       ),
     },
     {
+      title: '负载',
+      dataIndex: 'load',
+      key: 'load',
+      render: (load: number) => (
+        <Tooltip title={`当前负载: ${load.toFixed(2)}%`}>
+          <div style={{ width: 100 }}>
+            <div style={{ marginBottom: 4 }}>
+              {load > 80 ? '红色' : load > 50 ? '橙色' : '绿色'}
+            </div>
+            <div
+              style={{
+                height: 8,
+                backgroundColor: load > 80 ? '#ff4d4f' : load > 50 ? '#faad14' : '#52c41a',
+                borderRadius: 4,
+              }}
+            >
+              <div
+                style={{
+                  height: '100%',
+                  width: `${load}%`,
+                  backgroundColor: 'white',
+                  borderRadius: 4,
+                }}
+              />
+            </div>
+          </div>
+        </Tooltip>
+      ),
+    },
+    {
+      title: '连接数',
+      key: 'connections',
+      children: [
+        {
+          title: '当前',
+          render: (_: any, node: Node) => `${node.currentConnections}/${node.maxConnections}`,
+        },
+        {
+          title: '带宽',
+          render: (_: any, node: Node) => `${(node.bandwidth / 1024 / 1024).toFixed(2)} MB`,
+        },
+      ],
+    },
+    {
       title: '操作',
-      key: 'action',
-      render: () => (
-        <Space>
-          <Button type="link">编辑</Button>
-          <Button type="link" danger>删除</Button>
+      key: 'actions',
+      render: (_: any, node: Node) => (
+        <Space size="small">
+          <Tooltip title="编辑">
+            <Button
+              type="link"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(node)}
+            />
+          </Tooltip>
+          <Popconfirm
+            title="确定要删除这个节点吗？"
+            onConfirm={() => handleDelete(node.id)}
+            okText="确定"
+            cancelText="取消"
+          >
+            <Tooltip title="删除">
+              <Button type="link" danger icon={<DeleteOutlined />} />
+            </Tooltip>
+          </Popconfirm>
         </Space>
       ),
     },
   ];
-
-  const handleAdd = () => {
-    setIsModalOpen(true);
-  };
-
-  const handleCancel = () => {
-    setIsModalOpen(false);
-    form.resetFields();
-  };
-
-  const onFinish = (values: any) => {
-    mutation.mutate(values);
-  };
 
   return (
     <div>
@@ -86,14 +221,24 @@ export default function Nodes() {
         }}>
           节点管理
         </h2>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAdd}
-          className="cyber-btn-primary"
-        >
-          添加节点
-        </Button>
+        <Space>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={handleAdd}
+            className="cyber-btn-primary"
+          >
+            添加节点
+          </Button>
+          <Button
+            type="default"
+            icon={<DashboardOutlined />}
+            onClick={handleCheckHealth}
+            className="cyber-btn-secondary"
+          >
+            健康检查
+          </Button>
+        </Space>
       </div>
 
       <div className="cyber-table">
@@ -106,13 +251,21 @@ export default function Nodes() {
       </div>
 
       <Modal
-        title="添加节点"
+        title={editNode ? '编辑节点' : '添加节点'}
         open={isModalOpen}
         onOk={form.submit}
-        onCancel={handleCancel}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setEditNode(null);
+          form.resetFields();
+        }}
         className="cyber-modal"
       >
-        <Form form={form} onFinish={onFinish} layout="vertical">
+        <Form
+          form={form}
+          onFinish={(values) => mutation.mutate(values)}
+          layout="vertical"
+        >
           <Form.Item
             name="name"
             label="节点名称"
@@ -122,28 +275,103 @@ export default function Nodes() {
           </Form.Item>
 
           <Form.Item
-            name="type"
-            label="节点类型"
-            rules={[{ required: true, message: '请选择节点类型' }]}
+            name="region"
+            label="区域"
+            rules={[{ required: true, message: '请选择区域' }]}
           >
             <Select
               className="cyber-select"
-              placeholder="请选择节点类型"
+              placeholder="请选择区域"
             >
-              <Select.Option value="vmess">VMess</Select.Option>
-              <Select.Option value="vless">VLESS</Select.Option>
-              <Select.Option value="trojan">Trojan</Select.Option>
+              <Select.Option value="asia">亚洲</Select.Option>
+              <Select.Option value="europe">欧洲</Select.Option>
+              <Select.Option value="north_america">北美</Select.Option>
+              <Select.Option value="south_america">南美</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
-            name="config"
-            label="节点配置"
-            rules={[{ required: true, message: '请输入节点配置' }]}
+            name="ipAddress"
+            label="IP地址"
+            rules={[{ required: true, message: '请输入IP地址' }]}
           >
-            <TextArea rows={4} className="cyber-textarea" placeholder="请输入节点配置" />
+            <Input className="cyber-input" placeholder="例如: 192.168.1.1" />
+          </Form.Item>
+
+          <Form.Item
+            name="serverAddress"
+            label="服务器地址"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: vpn.example.com" />
+          </Form.Item>
+
+          <Form.Item
+            name="port"
+            label="端口"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: 443" />
+          </Form.Item>
+
+          <Form.Item
+            name="maxConnections"
+            label="最大连接数"
+            rules={[{ required: true, message: '请输入最大连接数' }]}
+          >
+            <InputNumber
+              min={1}
+              style={{ width: '100%' }}
+              className="cyber-input"
+            />
           </Form.Item>
         </Form>
+      </Modal>
+
+      <Modal
+        title="节点健康状态"
+        open={isHealthModalOpen}
+        onCancel={() => setIsHealthModalOpen(false)}
+        footer={null}
+        className="cyber-modal"
+      >
+        <div style={{ marginBottom: 16 }}>
+          <Space>
+            <Tag color="green">在线: {data?.health?.online || 0}</Tag>
+            <Tag color="red">离线: {data?.health?.offline || 0}</Tag>
+            <Tag color="blue">总数: {data?.health?.total || 0}</Tag>
+          </Space>
+        </div>
+        <div>
+          <Table
+            columns={[
+              {
+                title: '节点名称',
+                dataIndex: 'name',
+                key: 'name',
+              },
+              {
+                title: '区域',
+                dataIndex: 'region',
+                key: 'region',
+              },
+              {
+                title: '状态',
+                dataIndex: 'status',
+                key: 'status',
+                render: (status: string) => (
+                  <Tag color={status === 'online' ? 'green' : 'red'}>{status === 'online' ? '在线' : '离线'}</Tag>
+                ),
+              },
+              {
+                title: '运行时间',
+                dataIndex: 'uptime',
+                key: 'uptime',
+                render: (uptime: number) => `${Math.floor(uptime / 3600)}小时`,
+              },
+            ]}
+            dataSource={data?.health?.nodes || []}
+            rowKey="id"
+          />
+        </div>
       </Modal>
     </div>
   );
