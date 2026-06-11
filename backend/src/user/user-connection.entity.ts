@@ -1,6 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, JoinTable } from 'typeorm';
 import { User } from './user.entity';
 import { Node } from './node.entity';
+import { VPNConfiguration } from './vpn-configuration.entity';
 
 @Entity()
 export class UserConnection {
@@ -56,6 +57,10 @@ export class UserConnection {
   @ManyToOne(() => Node)
   @JoinColumn({ name: 'nodeId' })
   node: Node;
+
+  @ManyToOne(() => VPNConfiguration)
+  @JoinColumn({ name: 'configId' })
+  config?: VPNConfiguration;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
