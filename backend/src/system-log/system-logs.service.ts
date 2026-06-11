@@ -1,0 +1,117 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { SystemLog } from './system-log.entity';
+import { LessThan } from 'typeorm';
+import { Like } from 'typeorm';
+
+@Injectable()
+export class SystemLogsService {
+  constructor(
+    @InjectRepository(SystemLog)
+    private logRepository: Repository<SystemLog>,
+  ) {}
+
+  async create(logData: Partial<SystemLog>): Promise<SystemLog> {
+    const log = this.logRepository.create(logData);
+    return this.logRepository.save(log);
+  }
+
+  async findAll(query: any) {
+    const { page = 1, limit = 10, level, source, startDate, endDate } = query;
+
+    const queryBuilder = this.logRepository.createQueryBuilder('log')
+      .leftJoinAndSelect('log.metadata', 'metadata');
+
+    if (level) {
+      queryBuilder.andWhere('log.level = :level', { level });
+    }
+
+    if (source) {
+      queryBuilder.andWhere('log.source = :source', { source });
+    }
+
+    if (startDate || endDate) {
+      queryBuilder.andWhere('log.createdAt BETWEEN :startDate AND :endDate', {
+        startDate: startDate || new Date(0).toISOString(),
+        endDate: endDate || new Date().toISOString(),
+      });
+    }
+
+    const [data, total] = await queryBuilder
+      .orderBy('log.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data,
+      total,
+      page: parseInt(page),
+      limit: parseInt(limit),
+    };
+  }
+
+  async findOne(id: string): Promise<SystemLog> {
+    const log = await this.logRepository.findOne({
+      where: { id },
+      relations: ['metadata'],
+    });
+    if (!log) {
+      throw new NotFoundException('System log not found');
+    }
+    return log;
+  }
+
+  async findByUser(userId: string) {
+    return this.logRepository.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findByLevel(level: string) {
+    return this.logRepository.find({
+      where: { level },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findBySource(source: string) {
+    return this.logRepository.find({
+      where: { source },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async search(message: string) {
+    return this.logRepository.find({
+      where: { message: Like(`%${message}%`) },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async getStats() {
+    const total = await this.logRepository.count();
+    const error = await this.logRepository.count({ where: { level: 'ERROR' } });
+    const warning = await this.logRepository.count({ where: { level: 'WARNING' } });
+    const info = await this.logRepository.count({ where: { level: 'INFO' } });
+
+    return {
+      total,
+      error,
+      warning,
+      info,
+      debug: total - error - warning - info,
+    };
+  }
+
+  async clearOldLogs() {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - 30);
+    await this.logRepository.delete({
+      createdAt: LessThan(cutoffDate),
+    });
+    return { message: 'Old logs cleared' };
+  }
+}
