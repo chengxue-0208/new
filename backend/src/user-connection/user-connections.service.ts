@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserConnection } from './user-connection.entity';
+import { UserConnection } from '../user/user-connection.entity';
 import { LessThan } from 'typeorm';
 
 @Injectable()

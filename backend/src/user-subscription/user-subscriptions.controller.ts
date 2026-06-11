@@ -28,8 +28,8 @@ export class UserSubscriptionsController {
   }
 
   @Get('status/:status')
-  async findByStatus(@Param('status') status: string) {
-    return this.userSubscriptionsService.findByStatus(status);
+  async findByStatus(@Param('status') status: 'ACTIVE' | 'INACTIVE' | 'EXPIRED') {
+    return this.userSubscriptionsService.findByStatus(status as any);
   }
 
   @Get('stats')

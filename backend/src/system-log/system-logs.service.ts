@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { SystemLog } from './system-log.entity';
+import { SystemLog, LogSource, LogLevel } from './system-log.entity';
 import { LessThan } from 'typeorm';
 import { Like } from 'typeorm';
 
@@ -70,14 +70,14 @@ export class SystemLogsService {
     });
   }
 
-  async findByLevel(level: string) {
+  async findByLevel(level: LogLevel) {
     return this.logRepository.find({
       where: { level },
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findBySource(source: string) {
+  async findBySource(source: LogSource) {
     return this.logRepository.find({
       where: { source },
       order: { createdAt: 'DESC' },
@@ -93,9 +93,9 @@ export class SystemLogsService {
 
   async getStats() {
     const total = await this.logRepository.count();
-    const error = await this.logRepository.count({ where: { level: 'ERROR' } });
-    const warning = await this.logRepository.count({ where: { level: 'WARNING' } });
-    const info = await this.logRepository.count({ where: { level: 'INFO' } });
+    const error = await this.logRepository.count({ where: { level: LogLevel.ERROR } });
+    const warning = await this.logRepository.count({ where: { level: LogLevel.WARNING } });
+    const info = await this.logRepository.count({ where: { level: LogLevel.INFO } });
 
     return {
       total,

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserSubscription } from './user-subscription.entity';
 import { LessThan } from 'typeorm';
+import { SubscriptionStatus } from './user-subscription.entity';
 
 @Injectable()
 export class UserSubscriptionsService {
@@ -55,7 +56,7 @@ export class UserSubscriptionsService {
 
   async findActive(): Promise<UserSubscription[]> {
     return this.subscriptionRepository.find({
-      where: { status: 'ACTIVE' },
+      where: { status: SubscriptionStatus.ACTIVE },
       relations: ['user', 'subscriptionPlan'],
       order: { endDate: 'DESC' }
     });
@@ -65,7 +66,7 @@ export class UserSubscriptionsService {
     const today = new Date();
     return this.subscriptionRepository.find({
       where: {
-        status: 'ACTIVE',
+        status: SubscriptionStatus.ACTIVE,
         endDate: LessThan(today),
       },
       relations: ['user', 'subscriptionPlan'],
@@ -73,7 +74,7 @@ export class UserSubscriptionsService {
     });
   }
 
-  async findByStatus(status: string): Promise<UserSubscription[]> {
+  async findByStatus(status: SubscriptionStatus): Promise<UserSubscription[]> {
     return this.subscriptionRepository.find({
       where: { status },
       relations: ['user', 'subscriptionPlan'],
@@ -81,11 +82,11 @@ export class UserSubscriptionsService {
     });
   }
 
-  async getStats() {
+ async getStats() {
     const total = await this.subscriptionRepository.count();
-    const active = await this.subscriptionRepository.count({ where: { status: 'ACTIVE' } });
-    const inactive = await this.subscriptionRepository.count({ where: { status: 'INACTIVE' } });
-    const expired = await this.subscriptionRepository.count({ where: { status: 'EXPIRED' } });
+    const active = await this.subscriptionRepository.count({ where: { status: SubscriptionStatus.ACTIVE } });
+    const inactive = await this.subscriptionRepository.count({ where: { status: SubscriptionStatus.INACTIVE } });
+    const expired = await this.subscriptionRepository.count({ where: { status: SubscriptionStatus.EXPIRED } });
 
     return {
       total,

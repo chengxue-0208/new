@@ -55,7 +55,7 @@ export class VPNConfigurationsService {
     });
   }
 
-  async findByProtocol(protocol: string): Promise<VPNConfiguration[]> {
+  async findByProtocol(protocol: 'tcp' | 'udp'): Promise<VPNConfiguration[]> {
     return this.configRepository.find({
       where: { protocol },
       relations: ['node'],

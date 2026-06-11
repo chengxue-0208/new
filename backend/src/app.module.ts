@@ -18,16 +18,12 @@ import { PaymentModule } from './payment/payment.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-         type: 'postgres',
-         url: configService.get<string>('DATABASE_URL'),
-         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-         synchronize: false,
-         logging: true,
-       }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: false,
+      logging: true,
     }),
     CommonModule,
     AuthModule,
