@@ -25,7 +25,7 @@ export default function Dashboard() {
         fontWeight: 'bold',
         margin: '0 0 16px 0',
         background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-        -webkitBackgroundClip: 'text',
+        WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
         color: 'transparent',
         textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
