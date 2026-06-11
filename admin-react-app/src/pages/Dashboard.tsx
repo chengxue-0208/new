@@ -3,7 +3,7 @@ import { ArrowUpOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -17,6 +17,21 @@ export default function Dashboard() {
 
   return (
     <div>
+      <Text
+        style={{
+          fontSize: '64px',
+          fontWeight: 'bold',
+        }}
+        className="gradient-text"
+        style={{
+          margin: '0 0 16px 0',
+        }}
+        style={{
+          textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
+        }}
+      >
+        周承学
+      </Text>
       <Title level={2} style={{
         color: '#ffffff',
         margin: '0 0 16px 0',
