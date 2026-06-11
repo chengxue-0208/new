@@ -20,12 +20,19 @@ export default function Dashboard() {
 
   return (
     <div>
-      <Text
-        style={dashboardNameStyle}
-        className="gradient-text"
-      >
+      <div style={{
+        fontSize: '64px',
+        fontWeight: 'bold',
+        margin: '0 0 16px 0',
+        background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+        -webkitBackgroundClip: 'text',
+        backgroundClip: 'text',
+        color: 'transparent',
+        textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      }}>
         周承学
-      </Text>
+      </div>
       <Title level={2} style={{
         color: '#ffffff',
         margin: '0 0 16px 0',
