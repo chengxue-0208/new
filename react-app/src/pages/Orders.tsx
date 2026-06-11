@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { Table, Button, Space, Tag, Input, Select } from 'antd';
+import { Table, Button, Space, Tag, Input, DatePicker, Select } from 'antd';
 import { useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
@@ -12,7 +11,7 @@ export default function Orders() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['orders', pagination.current, pagination.pageSize, searchText, statusFilter],
-    queryFn: () => api.get(`/orders?page=${pagination.current}&limit=${pagination.pageSize}&search=${searchText}&status=${statusFilter}`).then((res: any) => res.data),
+    queryFn: () => api.get(`/orders?page=${pagination.current}&limit=${pagination.pageSize}&search=${searchText}&status=${statusFilter}`),
   });
 
   const columns = [
@@ -59,15 +58,9 @@ export default function Orders() {
 
   return (
     <div>
-      <h2 style={{
-        color: '#ffffff',
-        margin: '0 0 16px 0',
-      }}>
-        订单管理
-      </h2>
+      <h2>订单管理</h2>
       <Space style={{ marginBottom: 16 }}>
         <Input
-          className="cyber-input"
           placeholder="搜索订单号或用户"
           prefix={<SearchOutlined />}
           value={searchText}
@@ -84,25 +77,21 @@ export default function Orders() {
           <Select.Option value="paid">已支付</Select.Option>
           <Select.Option value="cancelled">已取消</Select.Option>
         </Select>
-        <Button type="primary" className="cyber-btn-primary">
-          刷新
-        </Button>
+        <Button type="primary">刷新</Button>
       </Space>
 
-      <div className="cyber-table">
-        <Table
-          columns={columns}
-          dataSource={data?.data || []}
-          rowKey="id"
-          loading={isLoading}
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: data?.total || 0,
-            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-          }}
-        />
-      </div>
+      <Table
+        columns={columns}
+        dataSource={data?.data || []}
+        rowKey="id"
+        loading={isLoading}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: data?.total || 0,
+          onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+        }}
+      />
     </div>
   );
 }

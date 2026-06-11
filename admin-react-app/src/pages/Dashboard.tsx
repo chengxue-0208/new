@@ -8,7 +8,7 @@ const { Title, Paragraph } = Typography;
 export default function Dashboard() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
-    queryFn: () => api.get('/dashboard/stats'),
+    queryFn: () => api.get('/dashboard/stats').then((res: any) => res.data),
   });
 
   if (isLoading) {
@@ -39,7 +39,7 @@ export default function Dashboard() {
           >
             <Statistic
               title={<span className="cyber-statistic-title">总用户数</span>}
-              value={stats?.totalUsers || 0}
+              value={(stats as any)?.totalUsers || 0}
               prefix={<ArrowUpOutlined style={{ color: '#0aff60' }} />}
               valueStyle={{
                 color: '#0aff60',
@@ -58,7 +58,7 @@ export default function Dashboard() {
           >
             <Statistic
               title={<span className="cyber-statistic-title">总订单数</span>}
-              value={stats?.totalOrders || 0}
+              value={(stats as any)?.totalOrders || 0}
               valueStyle={{
                 color: '#bc13fe',
                 fontSize: 36,

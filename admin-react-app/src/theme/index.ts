@@ -101,14 +101,6 @@ export const cyberpunkTheme = {
       borderRadius: 6,
     },
 
-    Tag: {
-      colorBgError: 'rgba(255, 0, 153, 0.2)',
-      colorBgWarning: 'rgba(250, 204, 21, 0.2)',
-      colorBgSuccess: 'rgba(10, 255, 96, 0.2)',
-      colorTextError: '#ff0099',
-      colorTextWarning: '#facc15',
-      colorTextSuccess: '#0aff60',
-    },
   },
 };
 

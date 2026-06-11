@@ -7,12 +7,12 @@ import api from '../services/api';
 export default function Logs() {
   const [searchText, setSearchText] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
-const [dateRange, setDateRange] = useState<any>(null);
-const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const { data, isLoading } = useQuery({
     queryKey: ['logs', pagination.current, pagination.pageSize, searchText, levelFilter, dateRange],
-    queryFn: () => api.get(`/logs?page=${pagination.current}&limit=${pagination.pageSize}&search=${searchText}&level=${levelFilter}&dateFrom=${dateRange?.[0]?.toISOString()}&dateTo=${dateRange?.[1]?.toISOString()}`).then((res: any) => res.data),
+    queryFn: () => api.get(`/logs?page=${pagination.current}&limit=${pagination.pageSize}&search=${searchText}&level=${levelFilter}&dateFrom=${dateRange?.[0]}&dateTo=${dateRange?.[1]}`),
   });
 
   const columns = [
@@ -52,15 +52,9 @@ const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   return (
     <div>
-      <h2 style={{
-        color: '#ffffff',
-        margin: '0 0 16px 0',
-      }}>
-        系统日志
-      </h2>
+      <h2>系统日志</h2>
       <Space style={{ marginBottom: 16 }}>
         <Input
-          className="cyber-input"
           placeholder="搜索日志消息"
           prefix={<SearchOutlined />}
           value={searchText}
@@ -68,7 +62,6 @@ const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
           style={{ width: 300 }}
         />
         <Select
-          className="cyber-select"
           value={levelFilter}
           onChange={setLevelFilter}
           style={{ width: 150 }}
@@ -78,26 +71,22 @@ const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
           <Select.Option value="warning">WARNING</Select.Option>
           <Select.Option value="error">ERROR</Select.Option>
         </Select>
-        <DatePicker.RangePicker className="cyber-picker" value={dateRange} onChange={setDateRange} />
-        <Button type="primary" className="cyber-btn-primary">
-          刷新
-        </Button>
+        <DatePicker.RangePicker value={dateRange} onChange={setDateRange} />
+        <Button type="primary">刷新</Button>
       </Space>
 
-      <div className="cyber-table">
-        <Table
-          columns={columns}
-          dataSource={data?.data || []}
-          rowKey="id"
-          loading={isLoading}
-          pagination={{
-            current: pagination.current,
-            pageSize: pagination.pageSize,
-            total: data?.total || 0,
-            onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
-          }}
-        />
-      </div>
+      <Table
+        columns={columns}
+        dataSource={data?.data || []}
+        rowKey="id"
+        loading={isLoading}
+        pagination={{
+          current: pagination.current,
+          pageSize: pagination.pageSize,
+          total: data?.total || 0,
+          onChange: (page, pageSize) => setPagination({ current: page, pageSize }),
+        }}
+      />
     </div>
   );
 }

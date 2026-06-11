@@ -1,6 +1,6 @@
 import { Layout, Menu, Breadcrumb } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import Sidebar from './components/sidebar/Sidebar';
 
 const { Header, Content, Sider } = Layout;
 
@@ -19,22 +19,9 @@ export default function AppLayout() {
   ];
 
   return (
-    <Layout style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0a0b1e 0%, #1a1b3e 50%, #0a0b1e 100%)',
-    }}>
-      <Sider width={240} theme="dark" style={{
-        background: 'rgba(22, 24, 53, 0.9)',
-        backdropFilter: 'blur(10px)',
-        borderRight: '1px solid rgba(139, 92, 246, 0.3)',
-      }}>
-        <div style={{
-          padding: '20px',
-          color: '#fff',
-          fontSize: '24px',
-          fontWeight: 'bold',
-          textShadow: '0 0 10px rgba(139, 92, 246, 0.5)',
-        }}>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider width={200} theme="dark">
+        <div style={{ padding: '16px', color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
           管理控制台
         </div>
         <Menu
@@ -43,31 +30,15 @@ export default function AppLayout() {
           mode="inline"
           items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{
-            border: 'none',
-          }}
         />
       </Sider>
       <Layout>
-        <Header style={{
-          background: 'rgba(22, 24, 53, 0.8)',
-          backdropFilter: 'blur(10px)',
-          padding: '0 24px',
-        }}>
-          <div style={{
-            color: 'rgba(255,255,255,0.9)',
-            fontSize: '16px',
-            fontWeight: 500,
-          }}>
+        <Header style={{ background: '#fff', padding: '0 24px', boxShadow: '0 1px 4px rgba(0,21,41,0.08)' }}>
+          <div style={{ color: 'rgba(0,0,0,0.85)', fontSize: '16px', fontWeight: 500 }}>
             {menuItems.find(item => item.key === location.pathname)?.label || '管理控制台'}
           </div>
         </Header>
-        <Content style={{
-          margin: '24px 16px',
-          padding: '24px',
-          background: 'transparent',
-          borderRadius: '8px',
-        }}>
+        <Content style={{ margin: '24px 16px', padding: '24px', background: '#fff', borderRadius: '8px' }}>
           <Breadcrumb style={{ marginBottom: 16 }}>
             <Breadcrumb.Item>首页</Breadcrumb.Item>
             <Breadcrumb.Item>
