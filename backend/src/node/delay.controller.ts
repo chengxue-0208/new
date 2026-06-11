@@ -1,12 +1,12 @@
 import { Controller, Get, Post, Param } from '@nestjs/common';
 import { DelayService } from './delay.service';
-import { NodeService } from './node.service';
+import { NodesService } from './node.service';
 
 @Controller('node/delay')
 export class DelayController {
   constructor(
     private readonly delayService: DelayService,
-    private readonly nodeService: NodeService,
+    private readonly nodeService: NodesService,
   ) {}
 
   @Get()

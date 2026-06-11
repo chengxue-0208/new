@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { VPNConfiguration } from '../vpn/vpn-configuration.entity';
-import { UserConnection } from './user-connection.entity';
+import { UserConnection } from '../user/user-connection.entity';
 import { Region } from './region.entity';
 
 @Entity()

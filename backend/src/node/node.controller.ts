@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
-import { NodesService } from './nodes.service';
+import { NodesService } from './node.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { VPNConfiguration } from '../vpn/vpn-configuration.entity';
 import { UserConnection } from '../user/user-connection.entity';

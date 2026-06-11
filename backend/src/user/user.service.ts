@@ -6,7 +6,7 @@ import { SubscriptionPlan } from '../entities/subscription-plan.entity';
 import { Order } from '../entities/order.entity';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,

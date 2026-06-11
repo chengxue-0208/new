@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { Node } from './node.entity';
-import { UserConnection } from './user-connection.entity';
+import { Node } from '../node/node.entity';
+import { UserConnection } from '../user/user-connection.entity';
 
 @Entity()
 export class VPNConfiguration {
