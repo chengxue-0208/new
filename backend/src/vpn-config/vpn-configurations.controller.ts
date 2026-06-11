@@ -23,7 +23,7 @@ export class VPNConfigurationsController {
   }
 
   @Get('by-protocol/:protocol')
-  async findByProtocol(@Param('protocol') protocol: string) {
+  async findByProtocol(@Param('protocol') protocol: 'tcp' | 'udp') {
     return this.vpnConfigurationsService.findByProtocol(protocol);
   }
 

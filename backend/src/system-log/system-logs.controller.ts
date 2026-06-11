@@ -1,5 +1,6 @@
 import { Controller, Get, Delete, Query, Param } from '@nestjs/common';
 import { SystemLogsService } from './system-logs.service';
+import { LogLevel, LogSource } from './system-log.entity';
 
 @Controller('system-logs')
 export class SystemLogsController {
@@ -16,12 +17,12 @@ export class SystemLogsController {
   }
 
   @Get('level/:level')
-  async findByLevel(@Param('level') level: string) {
+  async findByLevel(@Param('level') level: LogLevel) {
     return this.systemLogsService.findByLevel(level);
   }
 
   @Get('source/:source')
-  async findBySource(@Param('source') source: string) {
+  async findBySource(@Param('source') source: LogSource) {
     return this.systemLogsService.findBySource(source);
   }
 
