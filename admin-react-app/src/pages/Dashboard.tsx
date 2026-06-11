@@ -5,13 +5,6 @@ import api from '../services/api';
 
 const { Title, Paragraph, Text } = Typography;
 
-const dashboardNameStyle = {
-  fontSize: '64px',
-  fontWeight: 'bold',
-  margin: '0 0 16px 0',
-  textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
-};
-
 export default function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -24,12 +17,13 @@ export default function Dashboard() {
         fontSize: '64px',
         fontWeight: 'bold',
         margin: '0 0 16px 0',
-        background: 'linear-gradient(90deg, #6366f1, #8b5cf6)',
+        background: '#6366f1',
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
-        color: 'transparent',
+        color: '#8b5cf6',
+        WebkitTextFillColor: 'transparent',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
         textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
-        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       }}>
         周承学
       </div>
