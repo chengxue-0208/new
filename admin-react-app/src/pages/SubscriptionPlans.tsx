@@ -1,6 +1,7 @@
+import { InputNumber } from 'antd';
 import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm } from 'antd';
 import { useState } from 'react';
-import { PlusOutlined, EditOutlined, DeleteOutlined, TagOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
@@ -37,7 +38,7 @@ export default function SubscriptionPlans() {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['subscription-plans'],
     queryFn: () => api.get('/subscription-plans'),
   });

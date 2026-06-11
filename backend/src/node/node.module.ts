@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { NodeController } from './node.controller';
-import { NodeService } from './node.service';
+import { NodesController } from './node.controller';
+import { NodesService } from './nodes.service';
 import { DelayController } from './delay.controller';
 import { DelayService } from './delay.service';
-import { Node } from '../entities/node.entity';
+import { Node } from './node.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Node])],

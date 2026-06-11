@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm, message, InputNumber } from 'antd';
+import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm, message } from 'antd';
 import { useState } from 'react';
 import { SearchOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { InputNumber } from 'antd';
 import api from '../services/api';
 
 interface Order {
@@ -34,6 +35,7 @@ interface OrderFormData {
 export default function Orders() {
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [form] = Form.useForm();
@@ -327,7 +329,7 @@ export default function Orders() {
           </Form.Item>
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" loading={updateMutation.isLoading}>
+              <Button type="primary" htmlType="submit">
                 保存
               </Button>
               <Button onClick={() => {

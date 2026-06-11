@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from './order.entity';
+import { Repository, FindOperator, MoreThanOrEqual } from 'typeorm';
+import { Order, OrderStatus } from './order.entity';
 import { SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
 
 @Injectable()
@@ -57,7 +57,7 @@ export class OrdersService {
 
   async findByStatus(status: string): Promise<Order[]> {
     return this.orderRepository.find({
-      where: { status },
+      where: { status: status as OrderStatus },
       relations: ['user', 'subscriptionPlan'],
       order: { createdAt: 'DESC' }
     });

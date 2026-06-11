@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Delete, Query, Param } from '@nestjs/common';
 import { SystemLogsService } from './system-logs.service';
 
 @Controller('system-logs')

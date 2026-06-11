@@ -13,4 +13,5 @@ export declare class UsersService {
     findByEmail(email: string): Promise<User | null>;
     update(id: string, userData: Partial<User>): Promise<User>;
     remove(id: string): Promise<void>;
+    getSubscriptionStatus(id: string): Promise<any>;
 }

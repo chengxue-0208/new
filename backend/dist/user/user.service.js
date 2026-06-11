@@ -30,12 +30,15 @@ let UsersService = class UsersService {
         return this.userRepository.save(user);
     }
     async findAll() {
-        return this.userRepository.find();
+        return this.userRepository.find({
+            relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
+            order: { createdAt: 'DESC' }
+        });
     }
     async findOne(id) {
         const user = await this.userRepository.findOne({
             where: { id },
-            relations: ['subscriptionPlan', 'orders', 'connections'],
+            relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
         });
         if (!user) {
             throw new common_1.NotFoundException('User not found');
@@ -51,6 +54,18 @@ let UsersService = class UsersService {
     }
     async remove(id) {
         await this.userRepository.delete(id);
+    }
+    async getSubscriptionStatus(id) {
+        const user = await this.findOne(id);
+        return {
+            userId: user.id,
+            email: user.email,
+            status: user.subscriptionStatus,
+            expiresAt: user.subscriptionExpiresAt,
+            balance: user.balance,
+            trafficUsed: user.trafficUsed,
+            trafficLimit: user.trafficLimit
+        };
     }
 };
 exports.UsersService = UsersService;

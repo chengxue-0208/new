@@ -1,6 +1,7 @@
+import { InputNumber } from 'antd';
 import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm } from 'antd';
 import { useState } from 'react';
-import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined, CopyOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
@@ -41,7 +42,7 @@ export default function VPNConfig() {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['vpn-configs'],
     queryFn: () => api.get('/vpn-configs'),
   });

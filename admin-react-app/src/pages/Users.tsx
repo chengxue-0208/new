@@ -1,6 +1,6 @@
 import { Table, Button, Space, Tag, Input, Modal, Form, InputNumber, message, Popconfirm, Tooltip } from 'antd';
 import { useState } from 'react';
-import { SearchOutlined, EditOutlined, DeleteOutlined, DollarOutlined, DashboardOutlined } from '@ant-design/icons';
+import { SearchOutlined, EditOutlined, DeleteOutlined, DollarOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
@@ -264,7 +264,7 @@ export default function Users() {
           </Form.Item>
           <Form.Item>
             <Space>
-              <Button type="primary" htmlType="submit" loading={updateMutation.isLoading}>
+              <Button type="primary" htmlType="submit">
                 保存
               </Button>
               <Button onClick={() => {

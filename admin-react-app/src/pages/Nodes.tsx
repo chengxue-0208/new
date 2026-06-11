@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm } from 'antd';
 import { useState } from 'react';
-import { PlusOutlined, EditOutlined, DeleteOutlined, HealthOutlined, DashboardOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DashboardOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { InputNumber } from 'antd';
 import api from '../services/api';
 
 const { TextArea } = Input;
@@ -39,7 +40,7 @@ export default function Nodes() {
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['nodes'],
     queryFn: () => api.get('/nodes'),
   });
@@ -68,9 +69,12 @@ export default function Nodes() {
   const healthMutation = useMutation({
     mutationFn: () => api.get('/nodes/health'),
     onSuccess: (data: any) => {
+      setHealthData(data as any);
       setIsHealthModalOpen(true);
     },
   });
+
+  const [healthData, setHealthData] = useState<any>(null);
 
   const handleAdd = () => {
     setEditNode(null);
@@ -335,9 +339,9 @@ export default function Nodes() {
       >
         <div style={{ marginBottom: 16 }}>
           <Space>
-            <Tag color="green">在线: {data?.health?.online || 0}</Tag>
-            <Tag color="red">离线: {data?.health?.offline || 0}</Tag>
-            <Tag color="blue">总数: {data?.health?.total || 0}</Tag>
+            <Tag color="green">在线: {healthData?.online || 0}</Tag>
+            <Tag color="red">离线: {healthData?.offline || 0}</Tag>
+            <Tag color="blue">总数: {healthData?.total || 0}</Tag>
           </Space>
         </div>
         <div>
@@ -368,7 +372,7 @@ export default function Nodes() {
                 render: (uptime: number) => `${Math.floor(uptime / 3600)}小时`,
               },
             ]}
-            dataSource={data?.health?.nodes || []}
+            dataSource={healthData?.nodes || []}
             rowKey="id"
           />
         </div>

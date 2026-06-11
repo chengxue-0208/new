@@ -13,20 +13,6 @@ export default function Dashboard() {
 
   return (
     <div>
-      <div style={{
-        fontSize: '64px',
-        fontWeight: 'bold',
-        margin: '0 0 16px 0',
-        background: '#6366f1',
-        WebkitBackgroundClip: 'text',
-        backgroundClip: 'text',
-        color: '#8b5cf6',
-        WebkitTextFillColor: 'transparent',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        textShadow: '0 0 20px rgba(139, 92, 246, 0.5)',
-      }}>
-        周承学
-      </div>
       <Title level={2} style={{
         color: '#ffffff',
         margin: '0 0 16px 0',

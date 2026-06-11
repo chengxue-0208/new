@@ -9,20 +9,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.NodeModule = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
-const node_controller_1 = require("./node.controller");
-const node_service_1 = require("./node.service");
 const delay_controller_1 = require("./delay.controller");
 const delay_service_1 = require("./delay.service");
-const node_entity_1 = require("../entities/node.entity");
+const node_entity_1 = require("./node.entity");
 let NodeModule = class NodeModule {
 };
 exports.NodeModule = NodeModule;
 exports.NodeModule = NodeModule = __decorate([
     (0, common_1.Module)({
         imports: [typeorm_1.TypeOrmModule.forFeature([node_entity_1.Node])],
-        controllers: [node_controller_1.NodeController, delay_controller_1.DelayController],
-        providers: [node_service_1.NodeService, delay_service_1.DelayService],
-        exports: [node_service_1.NodeService, delay_service_1.DelayService],
+        controllers: [NodeController, delay_controller_1.DelayController],
+        providers: [NodeService, delay_service_1.DelayService],
+        exports: [NodeService, delay_service_1.DelayService],
     })
 ], NodeModule);
 //# sourceMappingURL=node.module.js.map

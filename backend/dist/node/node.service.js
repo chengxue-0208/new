@@ -12,28 +12,37 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NodeService = void 0;
+exports.NodesService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const node_entity_1 = require("../entities/node.entity");
-let NodeService = class NodeService {
+const node_entity_1 = require("./node.entity");
+let NodesService = class NodesService {
     constructor(nodeRepository) {
         this.nodeRepository = nodeRepository;
-    }
-    async findAll() {
-        return this.nodeRepository.find({ order: { name: 'ASC' } });
-    }
-    async findOne(id) {
-        const node = await this.nodeRepository.findOne({ where: { id } });
-        if (!node) {
-            throw new Error('Node not found');
-        }
-        return node;
     }
     async create(nodeData) {
         const node = this.nodeRepository.create(nodeData);
         return this.nodeRepository.save(node);
+    }
+    async findAll() {
+        return this.nodeRepository.find({
+            relations: ['config', 'connections'],
+            order: {
+                createdAt: 'DESC',
+                region: 'ASC'
+            }
+        });
+    }
+    async findOne(id) {
+        const node = await this.nodeRepository.findOne({
+            where: { id },
+            relations: ['config', 'connections'],
+        });
+        if (!node) {
+            throw new common_1.NotFoundException('Node not found');
+        }
+        return node;
     }
     async update(id, nodeData) {
         await this.nodeRepository.update(id, nodeData);
@@ -42,11 +51,34 @@ let NodeService = class NodeService {
     async remove(id) {
         await this.nodeRepository.delete(id);
     }
+    async findByRegion(region) {
+        return this.nodeRepository.find({
+            where: { region },
+            relations: ['config'],
+            order: { name: 'ASC' }
+        });
+    }
+    async checkHealth() {
+        const nodes = await this.findAll();
+        return {
+            total: nodes.length,
+            online: nodes.filter(n => n.status === 'online').length,
+            offline: nodes.filter(n => n.status === 'offline').length,
+            nodes: nodes.map(node => ({
+                id: node.id,
+                name: node.name,
+                region: node.region,
+                status: node.status,
+                statusMessage: node.statusMessage,
+                uptime: node.uptime,
+            }))
+        };
+    }
 };
-exports.NodeService = NodeService;
-exports.NodeService = NodeService = __decorate([
+exports.NodesService = NodesService;
+exports.NodesService = NodesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(node_entity_1.Node)),
     __metadata("design:paramtypes", [typeorm_2.Repository])
-], NodeService);
+], NodesService);
 //# sourceMappingURL=node.service.js.map
