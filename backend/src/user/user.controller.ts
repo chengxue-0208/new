@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Query as TypeQuery } from 'typeorm';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
