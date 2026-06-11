@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
@@ -22,13 +22,16 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.find();
+    return this.userRepository.find({
+      relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
+      order: { createdAt: 'DESC' }
+    });
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['subscriptionPlan', 'orders', 'connections'],
+      relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -47,5 +50,18 @@ export class UsersService {
 
   async remove(id: string): Promise<void> {
     await this.userRepository.delete(id);
+  }
+
+  async getSubscriptionStatus(id: string): Promise<any> {
+    const user = await this.findOne(id);
+    return {
+      userId: user.id,
+      email: user.email,
+      status: user.subscriptionStatus,
+      expiresAt: user.subscriptionExpiresAt,
+      balance: user.balance,
+      trafficUsed: user.trafficUsed,
+      trafficLimit: user.trafficLimit
+    };
   }
 }
