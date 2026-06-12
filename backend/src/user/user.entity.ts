@@ -14,6 +14,9 @@ export class User {
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  username: string;
+
   @Column({ type: 'varchar', length: 255 })
   passwordHash: string;
 
@@ -22,7 +25,7 @@ export class User {
 
   @Column({
     type: 'enum',
-    enum: ['ACTIVE', 'EXPIRED', 'CANCELLED'],
+    enum: ['ACTIVE', 'INACTIVE', 'EXPIRED', 'CANCELLED', 'PENDING'],
     default: 'ACTIVE'
   })
   subscriptionStatus: string;
@@ -32,6 +35,9 @@ export class User {
 
   @Column({ type: 'timestamp with time zone', nullable: true })
   subscriptionExpiresAt: Date;
+
+  @Column({ type: 'enum', enum: ['active', 'inactive'], default: 'active' })
+  status: string;
 
   @Column({ type: 'integer', default: 0 })
   trafficUsed: number;

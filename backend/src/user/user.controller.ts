@@ -8,8 +8,8 @@ export class UsersController {
   constructor(private readonly usersService: UserService) {}
 
   @Get()
-  async findAll() {
-    return this.usersService.findAll();
+  async findAll(@Query('page') page?: number, @Query('limit') limit?: number, @Query('search') search?: string) {
+    return this.usersService.findAll(page, limit, search);
   }
 
   @Get('search')

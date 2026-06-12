@@ -21,17 +21,43 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
-      order: { createdAt: 'DESC' }
-    });
+  async findAll(page?: number, limit?: number, search?: string): Promise<any> {
+    const query = this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'orders')
+      .leftJoinAndSelect('user.subscriptions', 'subscriptions')
+      .where('1=1');
+
+    if (search) {
+      query.andWhere(
+        '(user.email LIKE :search OR user.username LIKE :search)',
+        { search: `%${search}%` }
+      );
+    }
+
+    const skip = page && limit ? (page - 1) * limit : 0;
+
+    if (page && limit) {
+      query.skip(skip).take(limit);
+    }
+
+    const [data, total] = await query.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        page: page || 1,
+        limit: limit || data.length,
+        total,
+        totalPages: Math.ceil(total / (limit || data.length))
+      }
+    };
   }
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['subscriptionPlan', 'orders', 'connections', 'subscriptions'],
+      relations: ['orders', 'subscriptions'],
     });
     if (!user) {
       throw new NotFoundException('User not found');
