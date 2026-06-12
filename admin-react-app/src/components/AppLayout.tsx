@@ -1,12 +1,15 @@
-import { Layout, Menu, Breadcrumb } from 'antd';
+import { Layout, Menu, Breadcrumb, Dropdown } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 
 const { Header, Content, Sider } = Layout;
 
 export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, logout } = useAuth();
 
   const menuItems = [
     { key: '/', label: '首页' },
@@ -16,6 +19,20 @@ export default function AppLayout() {
     { key: '/orders', label: '订单管理' },
     { key: '/plans', label: '订阅计划' },
     { key: '/logs', label: '系统日志' },
+  ];
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const userMenuItems = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '退出登录',
+      onClick: handleLogout,
+    },
   ];
 
   return (
@@ -53,6 +70,9 @@ export default function AppLayout() {
           background: 'rgba(22, 24, 53, 0.8)',
           backdropFilter: 'blur(10px)',
           padding: '0 24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}>
           <div style={{
             color: 'rgba(255,255,255,0.9)',
@@ -61,6 +81,19 @@ export default function AppLayout() {
           }}>
             {menuItems.find(item => item.key === location.pathname)?.label || '管理控制台'}
           </div>
+          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                cursor: 'pointer',
+                padding: '0 8px',
+              }}
+            >
+              <UserOutlined style={{ marginRight: 8, color: '#8b5cf6' }} />
+              <span style={{ color: '#fff' }}>{user?.email || '用户'}</span>
+            </div>
+          </Dropdown>
         </Header>
         <Content style={{
           margin: '24px 16px',
