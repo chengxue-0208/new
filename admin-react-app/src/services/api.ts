@@ -1,13 +1,18 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+
+console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('API_BASE_URL:', API_BASE_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: false,
 });
 
 // 请求拦截器
@@ -17,6 +22,11 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    console.log('Final Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers
+    });
     return config;
   },
   (error) => {
@@ -26,9 +36,12 @@ api.interceptors.request.use(
 
 // 响应拦截器
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    return response.data;
+  },
   (error) => {
     console.error('API Error:', error);
+    console.error('Error Response:', error.response);
 
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
@@ -42,10 +55,10 @@ api.interceptors.response.use(
 
 // API 服务函数
 export const authAPI = {
-  login: (username: string, password: string) =>
-    api.post('/auth/login', { username, password }),
-  register: (username: string, password: string, email: string) =>
-    api.post('/auth/register', { username, password, email }),
+  login: (email: string, password: string) =>
+    api.post('/auth/login', { email, password }),
+  register: (email: string, password: string, username: string) =>
+    api.post('/auth/register', { email, password, username }),
 };
 
 export const nodesAPI = {

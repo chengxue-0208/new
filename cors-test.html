@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>CORS Test Page</h1>
+    <p>测试从页面访问后端API</p>
+
+    <button onclick="testCors()">测试API</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById('output');
+
+        async function testCors() {
+            output.innerHTML = '开始测试...\n';
+
+            try {
+                output.innerHTML += '正在发送请求...\n\n';
+
+                const response = await fetch('http://localhost:3000/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    mode: 'cors',
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        email: 'admin@example.com',
+                        password: 'admin123'
+                    })
+                });
+
+                const status = response.status;
+                const data = await response.json();
+
+                output.innerHTML += `响应状态: <span class="success">${status}</span>\n\n`;
+                output.innerHTML += `响应头:\n${JSON.stringify(response.headers, null, 2)}\n\n`;
+                output.innerHTML += `响应数据:\n${JSON.stringify(data, null, 2)}`;
+
+            } catch (error) {
+                output.innerHTML += `错误: <span class="error">${error.message}</span>\n\n`;
+                output.innerHTML += `错误详情:\n${JSON.stringify(error, null, 2)}`;
+            }
+        }
+    </script>
+</body>
+</html>

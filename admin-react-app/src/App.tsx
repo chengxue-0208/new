@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import AppLayout from './components/AppLayout';
 import Login from './pages/Login';
@@ -11,10 +11,24 @@ import SubscriptionPlans from './pages/SubscriptionPlans';
 import Logs from './pages/Logs';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = (await import('./contexts/AuthContext')).useAuth();
-  const token = localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  if (!isAuthenticated || !token) {
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      setIsAuthenticated(!!token && !!userData);
+      setIsLoading(false);
+    };
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return <div>加载中...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
@@ -23,11 +37,12 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   useEffect(() => {
-    const api = (await import('./services/api')).default;
-    const token = localStorage.getItem('token');
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
+    import('./services/api').then(api => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        api.default.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+    });
   }, []);
 
   return (

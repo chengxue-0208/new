@@ -239,7 +239,7 @@ export class PaymentService {
         success: false,
         message: 'Payment not completed',
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Alipay callback error: ${error.message}`);
       return {
         success: false,
@@ -297,7 +297,7 @@ export class PaymentService {
         success: false,
         message: 'Payment not completed',
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`WeChat Pay callback error: ${error.message}`);
       return {
         success: false,

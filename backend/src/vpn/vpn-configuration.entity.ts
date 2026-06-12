@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Node } from '../node/node.entity';
 import { UserConnection } from '../user/user-connection.entity';
 
-@Entity()
+@Entity('vpn_configuration')
 export class VPNConfiguration {
   @PrimaryGeneratedColumn('uuid')
   id: string;

@@ -30,7 +30,7 @@ export enum OrderPaymentMethod {
   OTHER = 'OTHER',
 }
 
-@Entity()
+@Entity('order')
 export class Order {
   @PrimaryGeneratedColumn('uuid')
   id: string;

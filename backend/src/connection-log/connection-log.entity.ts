@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('connection_log')
 export class ConnectionLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;

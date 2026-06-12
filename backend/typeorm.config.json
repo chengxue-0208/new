@@ -1,0 +1,13 @@
+{
+  "type": "postgres",
+  "host": "localhost",
+  "port": 5432,
+  "username": "admin",
+  "password": "admin1234",
+  "database": "vpn_db",
+  "synchronize": false,
+  "logging": true,
+  "entities": ["src/**/*.entity.ts"],
+  "migrations": [],
+  "subscribers": []
+}

@@ -11,10 +11,15 @@ export default function Login() {
   const handleLogin = async (values: any) => {
     try {
       setLoading(true);
+      console.log('Login values:', values);
+      console.log('API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+
       const response = await api.post('/auth/login', {
-        username: values.username,
+        email: values.username,
         password: values.password,
       });
+
+      console.log('Login response:', response);
 
       const { user, accessToken } = response;
 
@@ -24,6 +29,7 @@ export default function Login() {
       message.success('登录成功');
       navigate('/dashboard');
     } catch (error: any) {
+      console.error('Login error:', error);
       message.error(error.response?.data?.message || '登录失败');
     } finally {
       setLoading(false);

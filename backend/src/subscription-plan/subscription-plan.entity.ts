@@ -20,7 +20,7 @@ export enum SubscriptionType {
   LIFETIME = 'LIFETIME',
 }
 
-@Entity()
+@Entity('subscription_plan')
 export class SubscriptionPlan {
   @PrimaryGeneratedColumn('uuid')
   id: string;

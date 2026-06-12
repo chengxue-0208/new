@@ -1,6 +1,5 @@
 import { Layout, Menu, Breadcrumb, Dropdown } from 'antd';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 

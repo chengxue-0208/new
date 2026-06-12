@@ -23,7 +23,7 @@ export enum LogSource {
   SYSTEM = 'SYSTEM',
 }
 
-@Entity()
+@Entity('system_log')
 export class SystemLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;

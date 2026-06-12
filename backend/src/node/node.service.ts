@@ -19,7 +19,7 @@ export class NodesService {
 
   async findAll(): Promise<Node[]> {
     return this.nodeRepository.find({
-      relations: ['config', 'connections'],
+      relations: ['configs', 'connections'],
       order: {
         createdAt: 'DESC',
         region: 'ASC'
@@ -30,7 +30,7 @@ export class NodesService {
   async findOne(id: string): Promise<Node> {
     const node = await this.nodeRepository.findOne({
       where: { id },
-      relations: ['config', 'connections'],
+      relations: ['configs', 'connections'],
     });
     if (!node) {
       throw new NotFoundException('Node not found');
@@ -50,7 +50,7 @@ export class NodesService {
   async findByRegion(region: string): Promise<Node[]> {
     return this.nodeRepository.find({
       where: { region },
-      relations: ['config'],
+      relations: ['configs'],
       order: { name: 'ASC' }
     });
   }

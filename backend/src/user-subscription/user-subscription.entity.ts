@@ -17,7 +17,7 @@ export enum SubscriptionStatus {
   PENDING = 'PENDING',
 }
 
-@Entity()
+@Entity('user_subscription')
 export class UserSubscription {
   @PrimaryGeneratedColumn('uuid')
   id: string;

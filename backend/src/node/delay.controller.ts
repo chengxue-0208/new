@@ -20,7 +20,7 @@ export class DelayController {
         delays,
         stats,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: 'Failed to check node delays',

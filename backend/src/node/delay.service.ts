@@ -40,7 +40,7 @@ export class DelayService {
       await this.nodeRepository.update(nodeId, { delay });
 
       return delay;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn(`Node ${node.name} delay check failed: ${error.message}`);
       await this.nodeRepository.update(nodeId, { delay: -1 });
       return -1;

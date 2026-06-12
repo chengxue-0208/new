@@ -21,7 +21,7 @@ export class PaymentController {
         success: true,
         ...result,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: error.message,
@@ -52,7 +52,7 @@ export class PaymentController {
         success: true,
         ...result,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: error.message,
