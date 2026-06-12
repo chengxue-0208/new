@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Node } from '../entities/node.entity';
+import { Node } from './node.entity';
 
 @Injectable()
 export class DelayService {
@@ -25,7 +25,7 @@ export class DelayService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`https://${node.address}`, {
+      const response = await fetch(`https://${node.ipAddress}`, {
         method: 'GET',
         signal: controller.signal,
       });

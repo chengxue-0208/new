@@ -9,7 +9,11 @@ import {
 } from 'typeorm';
 import { User } from '../user/user.entity';
 import { SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
+import { SubscriptionStatus } from '../user-subscription/user-subscription.entity';
 
+export { User };
+export { SubscriptionPlan };
+export { SubscriptionStatus };
 export enum OrderStatus {
   PENDING = 'PENDING',
   PAID = 'PAID',
@@ -40,11 +44,20 @@ export class Order {
   @Column({ type: 'enum', enum: OrderStatus })
   status: OrderStatus;
 
+  @Column({ type: 'varchar', nullable: true })
+  subscriptionPlanId?: string;
+
   @Column({ type: 'enum', enum: OrderPaymentMethod })
   paymentMethod: OrderPaymentMethod;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   totalAmount: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  planName?: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  plan?: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   paidAmount?: number;
@@ -78,6 +91,9 @@ export class Order {
   @Column({ type: 'timestamp', nullable: true })
   refundTime?: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  paidAt?: Date;
+
   @Column({ type: 'json', nullable: true })
   paymentDetails?: any;
 
@@ -86,6 +102,15 @@ export class Order {
 
   @Column({ type: 'text', nullable: true })
   transactionNote?: string;
+
+  @Column({ type: 'text', nullable: true })
+  paymentTransactionId?: string;
+
+  @Column({ type: 'text', nullable: true })
+  payUrl?: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  amount: number;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

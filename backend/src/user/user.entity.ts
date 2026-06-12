@@ -1,8 +1,8 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
-import { Node } from '../entities/node.entity';
-import { VpnConfiguration } from '../entities/vpn-config.entity';
-import { Order } from '../entities/order.entity';
-import { UserSubscription } from '../entities/user-subscription.entity';
+import { Node } from '../node/node.entity';
+import { VPNConfiguration } from '../vpn/vpn-configuration.entity';
+import { Order } from '../order/order.entity';
+import { UserSubscription } from '../user-subscription/user-subscription.entity';
 
 @Entity('users')
 @Index(['email'], { unique: true })
@@ -45,11 +45,11 @@ export class User {
   @UpdateDateColumn({ type: 'timestamp with time zone', name: 'updated_at' })
   updatedAt: Date;
 
-  @OneToMany(() => Node, node => node.user)
+  @OneToMany(() => Node, node => node)
   nodes: Node[];
 
-  @OneToMany(() => VpnConfiguration, config => config.user)
-  connections: VpnConfiguration[];
+  @OneToMany(() => VPNConfiguration, config => config.node)
+  connections: VPNConfiguration[];
 
   @OneToMany(() => Order, order => order.user)
   orders: Order[];
@@ -57,3 +57,9 @@ export class User {
   @OneToMany(() => UserSubscription, subscription => subscription.user)
   subscriptions: UserSubscription[];
 }
+
+import { ConnectionLog } from '../connection-log/connection-log.entity';
+
+export { Node, VPNConfiguration, ConnectionLog };
+
+

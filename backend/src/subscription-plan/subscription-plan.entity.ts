@@ -64,3 +64,6 @@ export class SubscriptionPlan {
   @UpdateDateColumn({ type: 'timestamp' })
   updatedAt: Date;
 }
+
+export * from '../user/user.entity';
+export * from '../user-subscription/user-subscription.entity';

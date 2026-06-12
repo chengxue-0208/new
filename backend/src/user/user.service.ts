@@ -2,8 +2,8 @@ import { Injectable, NotFoundException, Query } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import { SubscriptionPlan } from '../entities/subscription-plan.entity';
-import { Order } from '../entities/order.entity';
+import { SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
+import { Order } from '../order/order.entity';
 
 @Injectable()
 export class UserService {

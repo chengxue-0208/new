@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, SubscriptionPlan } from '../entities';
+import { User, SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -15,7 +15,7 @@ export class SubscriptionService {
   async getPlans(): Promise<SubscriptionPlan[]> {
     return this.planRepository.find({
       where: { isActive: true },
-      order: { displayOrder: 'ASC' },
+      order: { createdAt: 'ASC' },
     });
   }
 
@@ -50,7 +50,7 @@ export class SubscriptionService {
       endAt: new Date(
         Date.now() + plan.durationDays * 24 * 60 * 60 * 1000,
       ),
-      trafficLimit: plan.monthlyTraffic,
+      trafficLimit: plan.trafficLimit,
     };
 
     await this.userRepository.update(userId, {

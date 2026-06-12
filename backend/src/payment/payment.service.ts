@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order, User, SubscriptionPlan } from '../entities';
+import { Order, User, SubscriptionPlan, OrderStatus, OrderPaymentMethod } from '../order/order.entity';
 
 interface AlipayConfig {
   appId: string;
@@ -86,7 +86,7 @@ export class PaymentService {
         out_trade_no: orderNo,
         product_code: 'FAST_INSTANT_TRADE_PAY',
         total_amount: amount,
-        subject: `VPN订阅 - ${order.plan.name}`,
+        subject: `VPN订阅 - ${order.planName}`,
         timeout_express: '30m',
       }),
     };
@@ -112,7 +112,7 @@ export class PaymentService {
       appid: config.appId,
       mch_id: config.mchId,
       nonce_str: this.generateNonceStr(32),
-      body: `VPN订阅 - ${order.plan.name}`,
+      body: `VPN订阅 - ${order.planName}`,
       out_trade_no: orderNo,
       total_fee: amount,
       spbill_create_ip: '127.0.0.1',
@@ -159,10 +159,17 @@ export class PaymentService {
 
     const order = this.orderRepository.create({
       userId,
-      planId: plan.id,
+      orderId: 'order-' + Date.now(),
+      subscriptionPlanId: plan.id,
+      planName: plan.name,
+      plan: plan.name || plan.type,
       amount: plan.price,
-      paymentMethod,
-      status: 'PENDING',
+      paymentMethod: OrderPaymentMethod[Object.keys(OrderPaymentMethod).find(k => OrderPaymentMethod[k] === paymentMethod) as keyof typeof OrderPaymentMethod] || OrderPaymentMethod.WALLET,
+      status: OrderStatus.PENDING,
+      discountAmount: 0,
+      refundAmount: 0,
+      pointsUsed: 0,
+      pointsEarned: 0,
     });
 
     const savedOrder = await this.orderRepository.save(order);
@@ -213,12 +220,12 @@ export class PaymentService {
         };
       }
 
-      if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') {
-        await this.orderRepository.update(orderNo, {
-          status: 'PAID',
-          paymentTransactionId: tradeNo,
-          paidAt: new Date(),
-        });
+  if (tradeStatus === 'TRADE_SUCCESS' || tradeStatus === 'TRADE_FINISHED') {
+      await this.orderRepository.update(orderNo, {
+        status: OrderStatus.PAID,
+        paymentTransactionId: tradeNo,
+        paidAt: new Date(),
+      });
 
         this.logger.log(`Alipay callback processed: ${orderNo}`);
 
@@ -271,12 +278,12 @@ export class PaymentService {
         };
       }
 
-      if (tradeState === 'SUCCESS') {
-        await this.orderRepository.update(outTradeNo, {
-          status: 'PAID',
-          paymentTransactionId: tradeNo,
-          paidAt: new Date(),
-        });
+ if (tradeState === 'SUCCESS') {
+      await this.orderRepository.update(outTradeNo, {
+        status: OrderStatus.PAID,
+        paymentTransactionId: tradeNo,
+        paidAt: new Date(),
+      });
 
         this.logger.log(`WeChat Pay callback processed: ${outTradeNo}`);
 

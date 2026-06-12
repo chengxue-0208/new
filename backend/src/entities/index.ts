@@ -1,8 +1,9 @@
-export * from './user.entity';
-export * from './node.entity';
-export * from './order.entity';
-export * from './subscription-plan.entity';
-export * from './connection-log.entity';
-export * from './system-log.entity';
-export * from './vpn-config.entity';
-export * from './user-subscription.entity';
+export { User } from '../user/user.entity';
+export { Node } from '../node/node.entity';
+export { Order } from '../order/order.entity';
+export { SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
+export { UserSubscription } from '../user-subscription/user-subscription.entity';
+export { SystemLog } from '../system-log/system-log.entity';
+export { VPNConfiguration } from '../vpn/vpn-configuration.entity';
+export { UserConnection } from '../user/user-connection.entity';
+export { Region } from '../node/region.entity';

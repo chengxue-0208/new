@@ -90,3 +90,5 @@ export class UserSubscription {
   @JoinColumn({ name: 'subscriptionPlanId' })
   subscriptionPlan: SubscriptionPlan;
 }
+
+export { User, SubscriptionPlan };

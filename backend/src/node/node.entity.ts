@@ -50,6 +50,12 @@ export class Node {
   @Column({ type: 'int', default: 0 })
   currentConnections: number;
 
+ @Column({ type: 'int', default: 0 })
+  delay: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  path?: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   load: number;
 

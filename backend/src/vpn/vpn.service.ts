@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User, Node, VpnConfiguration, ConnectionLog } from '../entities';
+import { User, Node, VPNConfiguration } from '../user/user.entity';
+import { ConnectionLog } from '../connection-log/connection-log.entity';
 
 @Injectable()
 export class VpnService {
@@ -10,8 +11,8 @@ export class VpnService {
     private userRepository: Repository<User>,
     @InjectRepository(Node)
     private nodeRepository: Repository<Node>,
-    @InjectRepository(VpnConfiguration)
-    private vpnConfigRepository: Repository<VpnConfiguration>,
+    @InjectRepository(VPNConfiguration)
+    private vpnConfigRepository: Repository<VPNConfiguration>,
     @InjectRepository(ConnectionLog)
     private connectionLogRepository: Repository<ConnectionLog>,
   ) {}
@@ -32,13 +33,9 @@ export class VpnService {
     }
 
     const config = this.vpnConfigRepository.create({
-      userId,
       nodeId: node.id,
-      protocol: node.protocol,
-      address: node.address,
-      port: node.port,
-      path: node.path,
-      serverName: node.serverName,
+      protocol: 'udp' as 'tcp' | 'udp',
+      port: node.serverPort || 443,
       createdAt: new Date(),
     });
 
@@ -61,7 +58,7 @@ export class VpnService {
 
   async disconnect(userId: string): Promise<any> {
     const config = await this.vpnConfigRepository.findOne({
-      where: { userId },
+      where: { node: { id: userId } },
       order: { createdAt: 'DESC' },
     });
 
@@ -85,7 +82,7 @@ export class VpnService {
 
   async getStatus(userId: string): Promise<any> {
     const config = await this.vpnConfigRepository.findOne({
-      where: { userId },
+      where: { node: { id: userId } },
       order: { createdAt: 'DESC' },
     });
 

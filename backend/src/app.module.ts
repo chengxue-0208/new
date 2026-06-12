@@ -22,7 +22,7 @@ import { PaymentModule } from './payment/payment.module';
       type: 'postgres',
       url: process.env.DATABASE_URL,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
       logging: true,
     }),
     CommonModule,
