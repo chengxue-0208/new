@@ -71,7 +71,7 @@ export const nodesAPI = {
 };
 
 export const subscriptionAPI = {
-  getPlans: () => api.get('/subscription/plans'),
+  getPlans: () => api.get('/subscription-plans'),
   getMySubscription: () => api.get('/subscription/my'),
   purchase: (planId: string, paymentMethod: string) =>
     api.post('/subscription/purchase', { planId, paymentMethod }),
