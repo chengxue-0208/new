@@ -9,12 +9,8 @@ export class VPNConfigurationsController {
 
   @Get()
   async findAll() {
-    return this.vpnConfigurationsService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.vpnConfigurationsService.findOne(id);
+    const data = await this.vpnConfigurationsService.findAll();
+    return { data };
   }
 
   @Get('node/:nodeId')
@@ -25,6 +21,11 @@ export class VPNConfigurationsController {
   @Get('by-protocol/:protocol')
   async findByProtocol(@Param('protocol') protocol: 'tcp' | 'udp') {
     return this.vpnConfigurationsService.findByProtocol(protocol);
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.vpnConfigurationsService.findOne(id);
   }
 
   @Post()

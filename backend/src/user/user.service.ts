@@ -45,12 +45,10 @@ export class UserService {
 
     return {
       data,
-      meta: {
-        page: page || 1,
-        limit: limit || data.length,
-        total,
-        totalPages: Math.ceil(total / (limit || data.length))
-      }
+      total,
+      page: page || 1,
+      limit: limit || data.length,
+      totalPages: Math.ceil(total / (limit || data.length || 1)),
     };
   }
 

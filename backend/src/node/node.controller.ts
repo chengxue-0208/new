@@ -11,12 +11,8 @@ export class NodesController {
 
   @Get()
   async findAll() {
-    return this.nodesService.findAll();
-  }
-
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return this.nodesService.findOne(id);
+    const data = await this.nodesService.findAll();
+    return { data };
   }
 
   @Get('by-region/:region')
@@ -27,6 +23,11 @@ export class NodesController {
   @Get('health')
   async checkHealth() {
     return this.nodesService.checkHealth();
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.nodesService.findOne(id);
   }
 
   @Post()

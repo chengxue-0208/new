@@ -18,23 +18,38 @@ export class SystemLogsService {
   }
 
   async findAll(query: any) {
-    const { page = 1, limit = 10, level, source, startDate, endDate } = query;
+    const {
+      page = 1,
+      limit = 10,
+      level,
+      source,
+      startDate,
+      endDate,
+      dateFrom,
+      dateTo,
+      search,
+    } = query;
 
-    const queryBuilder = this.logRepository.createQueryBuilder('log')
-      .leftJoinAndSelect('log.metadata', 'metadata');
+    const queryBuilder = this.logRepository.createQueryBuilder('log');
 
-    if (level) {
-      queryBuilder.andWhere('log.level = :level', { level });
+    if (level && level !== 'all') {
+      queryBuilder.andWhere('log.level = :level', { level: String(level).toUpperCase() });
     }
 
     if (source) {
       queryBuilder.andWhere('log.source = :source', { source });
     }
 
-    if (startDate || endDate) {
+    if (search) {
+      queryBuilder.andWhere('log.message ILIKE :search', { search: `%${search}%` });
+    }
+
+    const from = startDate || dateFrom;
+    const to = endDate || dateTo;
+    if (from || to) {
       queryBuilder.andWhere('log.createdAt BETWEEN :startDate AND :endDate', {
-        startDate: startDate || new Date(0).toISOString(),
-        endDate: endDate || new Date().toISOString(),
+        startDate: from || new Date(0).toISOString(),
+        endDate: to || new Date().toISOString(),
       });
     }
 
@@ -44,8 +59,20 @@ export class SystemLogsService {
       .take(limit)
       .getManyAndCount();
 
+    const mappedData = data.map((item) => ({
+      id: item.id,
+      level: item.level.toLowerCase(),
+      message: item.message,
+      ip: item.ipAddress || '-',
+      timestamp: item.createdAt,
+      source: item.source,
+      userId: item.userId,
+      nodeId: item.nodeId,
+      responseTime: item.responseTime,
+    }));
+
     return {
-      data,
+      data: mappedData,
       total,
       page: parseInt(page),
       limit: parseInt(limit),

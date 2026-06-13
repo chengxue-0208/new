@@ -8,8 +8,14 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  async findAll() {
-    return this.ordersService.findAll();
+  async findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('status') status?: string,
+  ) {
+    const result = await this.ordersService.findAll(page, limit, search, status);
+    return { data: result };
   }
 
   @Get(':id')

@@ -5,8 +5,6 @@ import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../services/api';
 
-const { TextArea } = Input;
-
 interface SubscriptionPlan {
   id: string;
   name: string;
@@ -32,6 +30,11 @@ interface SubscriptionPlanFormData {
   isActive: boolean;
 }
 
+const toNumber = (value: unknown, fallback = 0): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
 export default function SubscriptionPlans() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editPlan, setEditPlan] = useState<SubscriptionPlan | null>(null);
@@ -40,12 +43,12 @@ export default function SubscriptionPlans() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['subscription-plans'],
-    queryFn: () => api.get('/subscription-plans'),
+    queryFn: () => api.get('/subscription/plans'),
   });
 
   const mutation = useMutation({
     mutationFn: (values: SubscriptionPlanFormData) => {
-      const url = editPlan ? `/subscription-plans/${editPlan.id}` : '/subscription-plans';
+      const url = editPlan ? `/subscription/plans/${editPlan.id}` : '/subscription/plans';
       return editPlan ? api.put(url, values) : api.post(url, values);
     },
     onSuccess: () => {
@@ -57,7 +60,7 @@ export default function SubscriptionPlans() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.delete(`/subscription-plans/${id}`),
+    mutationFn: (id: string) => api.delete(`/subscription/plans/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription-plans'] });
     },
@@ -127,20 +130,25 @@ export default function SubscriptionPlans() {
       children: [
         {
           title: '当前价',
-          render: (_: any, plan: SubscriptionPlan) => (
-            <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-              ¥{plan.price.toFixed(2)}
-            </span>
-          ),
+          render: (_: any, plan: SubscriptionPlan) => {
+            const price = toNumber(plan.price);
+            return (
+              <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
+                ¥{price.toFixed(2)}
+              </span>
+            );
+          },
         },
         {
           title: '原价',
           render: (_: any, plan: SubscriptionPlan) => {
-            if (plan.originalPrice) {
+            const originalPrice = toNumber(plan.originalPrice, NaN);
+            const price = toNumber(plan.price);
+            if (Number.isFinite(originalPrice) && originalPrice > 0) {
               return (
-                <Tooltip title={`节省 ¥${(plan.originalPrice - plan.price).toFixed(2)}`}>
+                <Tooltip title={`节省 ¥${(originalPrice - price).toFixed(2)}`}>
                   <span style={{ color: '#ff4d4f', textDecoration: 'line-through' }}>
-                    ¥{plan.originalPrice.toFixed(2)}
+                    ¥{originalPrice.toFixed(2)}
                   </span>
                 </Tooltip>
               );
@@ -154,11 +162,14 @@ export default function SubscriptionPlans() {
       title: '优惠率',
       dataIndex: 'discountRate',
       key: 'discountRate',
-      render: (discountRate: number) => (
-        <Tooltip title={`节省 ${(100 - discountRate).toFixed(0)}%`}>
-          <Tag color="purple">-{discountRate.toFixed(0)}%</Tag>
-        </Tooltip>
-      ),
+      render: (discountRate: number | string) => {
+        const rate = toNumber(discountRate);
+        return (
+          <Tooltip title={`节省 ${(100 - rate).toFixed(0)}%`}>
+            <Tag color="purple">-{rate.toFixed(0)}%</Tag>
+          </Tooltip>
+        );
+      },
     },
     {
       title: '时长',

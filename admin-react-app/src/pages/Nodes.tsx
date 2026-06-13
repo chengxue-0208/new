@@ -33,6 +33,11 @@ interface NodeFormData {
   maxConnections: number;
 }
 
+const toNumber = (value: unknown, fallback = 0): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
 export default function Nodes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
@@ -149,23 +154,25 @@ export default function Nodes() {
       title: '负载',
       dataIndex: 'load',
       key: 'load',
-      render: (load: number) => (
-        <Tooltip title={`当前负载: ${load.toFixed(2)}%`}>
+      render: (load: number | string) => {
+        const loadValue = toNumber(load);
+        return (
+        <Tooltip title={`当前负载: ${loadValue.toFixed(2)}%`}>
           <div style={{ width: 100 }}>
             <div style={{ marginBottom: 4 }}>
-              {load > 80 ? '红色' : load > 50 ? '橙色' : '绿色'}
+              {loadValue > 80 ? '红色' : loadValue > 50 ? '橙色' : '绿色'}
             </div>
             <div
               style={{
                 height: 8,
-                backgroundColor: load > 80 ? '#ff4d4f' : load > 50 ? '#faad14' : '#52c41a',
+                backgroundColor: loadValue > 80 ? '#ff4d4f' : loadValue > 50 ? '#faad14' : '#52c41a',
                 borderRadius: 4,
               }}
             >
               <div
                 style={{
                   height: '100%',
-                  width: `${load}%`,
+                  width: `${Math.min(100, Math.max(0, loadValue))}%`,
                   backgroundColor: 'white',
                   borderRadius: 4,
                 }}
@@ -173,7 +180,8 @@ export default function Nodes() {
             </div>
           </div>
         </Tooltip>
-      ),
+      );
+      },
     },
     {
       title: '连接数',
@@ -185,7 +193,7 @@ export default function Nodes() {
         },
         {
           title: '带宽',
-          render: (_: any, node: Node) => `${(node.bandwidth / 1024 / 1024).toFixed(2)} MB`,
+          render: (_: any, node: Node) => `${(toNumber(node.bandwidth) / 1024 / 1024).toFixed(2)} MB`,
         },
       ],
     },

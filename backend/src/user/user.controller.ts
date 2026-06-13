@@ -9,7 +9,8 @@ export class UsersController {
 
   @Get()
   async findAll(@Query('page') page?: number, @Query('limit') limit?: number, @Query('search') search?: string) {
-    return this.usersService.findAll(page, limit, search);
+    const result = await this.usersService.findAll(page, limit, search);
+    return { data: result };
   }
 
   @Get('search')

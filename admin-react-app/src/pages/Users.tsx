@@ -22,6 +22,11 @@ interface UserFormData {
   trafficLimit: number;
 }
 
+const toNumber = (value: unknown, fallback = 0): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
 export default function Users() {
   const [searchText, setSearchText] = useState('');
   const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
@@ -110,12 +115,15 @@ export default function Users() {
       title: '余额',
       dataIndex: 'balance',
       key: 'balance',
-      render: (balance: number) => (
-        <Tooltip title="余额">
-          <DollarOutlined style={{ marginRight: 4 }} />
-          ¥{balance.toFixed(2)}
-        </Tooltip>
-      ),
+      render: (balance: number | string) => {
+        const value = toNumber(balance);
+        return (
+          <Tooltip title="余额">
+            <DollarOutlined style={{ marginRight: 4 }} />
+            ¥{value.toFixed(2)}
+          </Tooltip>
+        );
+      },
     },
     {
       title: '流量使用',
@@ -123,11 +131,11 @@ export default function Users() {
       children: [
         {
           title: '已用',
-          render: (_: any, user: User) => `${(user.trafficUsed / 1024).toFixed(2)} GB`,
+          render: (_: any, user: User) => `${(toNumber(user.trafficUsed) / 1024).toFixed(2)} GB`,
         },
         {
           title: '总量',
-          render: (_: any, user: User) => `${(user.trafficLimit / 1024).toFixed(2)} GB`,
+          render: (_: any, user: User) => `${(toNumber(user.trafficLimit) / 1024).toFixed(2)} GB`,
         },
       ],
     },

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
@@ -14,9 +14,25 @@ export class SubscriptionService {
 
   async getPlans(): Promise<SubscriptionPlan[]> {
     return this.planRepository.find({
-      where: { isActive: true },
-      order: { createdAt: 'ASC' },
+      order: {
+        name: 'ASC',
+        price: 'ASC',
+      }
     });
+  }
+
+  async createPlan(planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> {
+    const plan = this.planRepository.create(planData);
+    return this.planRepository.save(plan);
+  }
+
+  async updatePlan(id: string, planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> {
+    await this.planRepository.update(id, planData);
+    return this.planRepository.findOne({ where: { id } });
+  }
+
+  async deletePlan(id: string): Promise<void> {
+    await this.planRepository.delete(id);
   }
 
   async getMySubscription(userId: string): Promise<any> {

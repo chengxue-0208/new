@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { VpnService } from './vpn.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -8,25 +8,25 @@ export class VpnController {
 
   @Post('connect')
   @UseGuards(JwtAuthGuard)
-  async connect(@Body() connectionData: any, userId: string) {
-    return this.vpnService.connect(userId, connectionData);
+  async connect(@Body() connectionData: any, @Request() req: any) {
+    return this.vpnService.connect(req.user.userId, connectionData);
   }
 
   @Post('disconnect')
   @UseGuards(JwtAuthGuard)
-  async disconnect(userId: string) {
-    return this.vpnService.disconnect(userId);
+  async disconnect(@Request() req: any) {
+    return this.vpnService.disconnect(req.user.userId);
   }
 
   @Get('status')
   @UseGuards(JwtAuthGuard)
-  async getStatus(userId: string) {
-    return this.vpnService.getStatus(userId);
+  async getStatus(@Request() req: any) {
+    return this.vpnService.getStatus(req.user.userId);
   }
 
   @Get('config')
   @UseGuards(JwtAuthGuard)
-  async getConfig(userId: string) {
-    return this.vpnService.getConfig(userId);
+  async getConfig(@Request() req: any) {
+    return this.vpnService.getConfig(req.user.userId);
   }
 }
