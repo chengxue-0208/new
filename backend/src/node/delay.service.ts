@@ -25,7 +25,7 @@ export class DelayService {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-      const response = await fetch(`https://${node.server}`, {
+      const response = await fetch(`https://${node.address}`, {
         method: 'GET',
         signal: controller.signal,
       });

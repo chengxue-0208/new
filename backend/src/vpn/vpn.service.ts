@@ -34,7 +34,7 @@ export class VpnService {
 
     const config = this.vpnConfigRepository.create({
       nodeId: node.id,
-      protocol: node.transport === 'tcp' ? 'tcp' : 'udp',
+      protocol: node.type === 'tcp' ? 'tcp' : 'udp',
       port: node.port,
       createdAt: new Date(),
     });

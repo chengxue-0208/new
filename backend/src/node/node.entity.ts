@@ -14,7 +14,7 @@ import { Region } from './region.entity';
 
 export type NodeProtocol = 'vless' | 'vmess' | 'trojan' | 'shadowsocks';
 export type NodeSecurity = 'reality' | 'tls' | 'none';
-export type NodeTransport = 'tcp' | 'ws' | 'grpc';
+export type NodeType = 'tcp' | 'ws' | 'grpc';
 
 @Entity('node')
 export class Node {
@@ -31,7 +31,7 @@ export class Node {
   protocol: NodeProtocol;
 
   @Column({ default: '' })
-  server: string;
+  address: string;
 
   @Column({ type: 'int' })
   port: number;
@@ -39,23 +39,26 @@ export class Node {
   @Column({ default: '' })
   uuid: string;
 
-  @Column({ default: 'none' })
+  @Column({ default: 'tls' })
   security: NodeSecurity;
 
   @Column({ nullable: true })
   sni?: string;
 
-  @Column({ nullable: true })
-  publicKey?: string;
+  @Column({ default: 'none' })
+  encryption: string;
 
   @Column({ nullable: true })
-  shortId?: string;
+  fp?: string;
+
+  @Column({ default: 'ws' })
+  type: NodeType;
 
   @Column({ nullable: true })
-  flow?: string;
+  host?: string;
 
-  @Column({ default: 'tcp' })
-  transport: NodeTransport;
+  @Column({ nullable: true })
+  path?: string;
 
   @Column({ default: 'online' })
   status: 'online' | 'offline' | 'maintenance';
