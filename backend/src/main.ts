@@ -1,30 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
-import { DataSource } from 'typeorm';
-import { runSeed } from './seed';
+import { getAppPort } from './config/app.config';
+import { runStartupSeed } from './database/startup-seed';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService);
 
   app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
 
-  await app.listen(3000);
-  console.log(`Application is running on: http://localhost:3000`);
+  const port = getAppPort(configService);
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 
-  if (process.env.NODE_ENV === 'development') {
-    const configService = app.get(ConfigService);
-    const dataSource = new DataSource({
-      type: 'postgres',
-      url: configService.get('DATABASE_URL'),
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-    });
-
-    if (await dataSource.initialize()) {
-      await runSeed(dataSource);
-    }
-  }
+  await runStartupSeed(app);
 }
 bootstrap();

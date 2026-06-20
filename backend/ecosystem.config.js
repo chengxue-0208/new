@@ -2,7 +2,7 @@ module.exports = {
   apps : [{
     name: 'vpn-backend',
     script: 'dist/main.js',
-    cwd: '/home/cheng/Project/vpn-service/backend',
+    cwd: '/home/chengxue/new/backend',
     instances: 1,
     exec_mode: 'fork',
     env: {

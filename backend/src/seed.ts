@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { SubscriptionPlan } from './subscription-plan/subscription-plan.entity';
+import { SubscriptionPlan, SubscriptionType } from './subscription-plan/subscription-plan.entity';
 import { User } from './user/user.entity';
 import { Node } from './node/node.entity';
 import { VPNConfiguration } from './vpn/vpn-configuration.entity';
@@ -29,75 +29,80 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
       return;
     }
 
-    await subscriptionPlanRepository.save([
+    const plans = await subscriptionPlanRepository.save([
       {
         name: 'Monthly Plan',
+        type: SubscriptionType.MONTHLY,
         price: 19.99,
         durationDays: 30,
-        monthlyTraffic: 100,
-        isActive: true,
-        displayOrder: 1
+        trafficLimit: 10240,
+        maxDevices: 3,
+        description: 'Monthly VPN subscription',
+        isActive: true
       },
       {
         name: '3-Month Plan',
+        type: SubscriptionType.QUARTERLY,
         price: 49.99,
         durationDays: 90,
-        monthlyTraffic: 200,
+        trafficLimit: 20480,
+        maxDevices: 5,
+        description: 'Quarterly VPN subscription',
         isActive: true,
-        displayOrder: 2
-      },
-      {
-        name: '6-Month Plan',
-        price: 79.99,
-        durationDays: 180,
-        monthlyTraffic: 300,
-        isActive: true,
-        displayOrder: 3
       },
       {
         name: '1-Year Plan',
+        type: SubscriptionType.YEARLY,
         price: 149.99,
         durationDays: 365,
-        monthlyTraffic: 500,
+        trafficLimit: 102400,
+        maxDevices: 10,
+        description: 'Annual VPN subscription',
         isActive: true,
-        displayOrder: 4
       }
     ]);
 
-    await userRepository.save([
+    const [monthlyPlan, quarterlyPlan, yearlyPlan] = plans;
+
+    const users = await userRepository.save([
       {
         email: 'admin@example.com',
+        username: 'admin',
         passwordHash: 'hashed_password_for_admin',
         subscriptionStatus: 'ACTIVE',
-        subscriptionPlanId: 'plan-monthly',
-        subscriptionExpiresAt: '2026-07-11',
+        subscriptionPlanId: monthlyPlan.id,
+        subscriptionExpiresAt: new Date('2026-07-11'),
         balance: 1000.00,
         trafficUsed: 0,
         trafficLimit: 10240
       },
       {
         email: 'test@example.com',
+        username: 'test',
         passwordHash: 'hashed_password_for_test',
         subscriptionStatus: 'EXPIRED',
-        subscriptionPlanId: 'plan-monthly',
-        subscriptionExpiresAt: '2026-05-11',
+        subscriptionPlanId: monthlyPlan.id,
+        subscriptionExpiresAt: new Date('2026-05-11'),
         balance: 50.00,
         trafficUsed: 5120,
         trafficLimit: 10240
       },
       {
         email: 'demo@example.com',
+        username: 'demo',
         passwordHash: 'hashed_password_for_demo',
         subscriptionStatus: 'ACTIVE',
-        subscriptionPlanId: 'plan-1year',
-        subscriptionExpiresAt: '2027-06-11',
+        subscriptionPlanId: yearlyPlan.id,
+        subscriptionExpiresAt: new Date('2027-06-11'),
         balance: 500.00,
         trafficUsed: 0,
         trafficLimit: 102400
       }
     ]);
 
-    await nodeRepository.save([
+    const [adminUser, testUser, demoUser] = users;
+
+    const nodes = await nodeRepository.save([
       {
         name: 'US-West-1',
         region: 'United States',
@@ -196,79 +201,93 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
       }
     ]);
 
+    const [usWestNode, usEastNode, euWestNode, euEastNode] = nodes;
+
     await vpnConfigRepository.save([
       {
-        userId: 'user-1',
-        nodeId: 'node-1',
+        name: 'US-West-1 Config',
+        nodeId: usWestNode.id,
         protocol: 'tcp',
-        address: 'us-west-1.vpn.example.com',
         port: 443,
-        path: '/us-west',
-        serverName: 'US-West-1 Config'
+        dns: '1.1.1.1',
+        encryption: 'AES-256',
+        isActive: true
       },
       {
-        userId: 'user-1',
-        nodeId: 'node-2',
+        name: 'US-East-1 Config',
+        nodeId: usEastNode.id,
         protocol: 'udp',
-        address: 'us-east-1.vpn.example.com',
         port: 1194,
-        path: '/us-east',
-        serverName: 'US-East-1 Config'
+        dns: '8.8.8.8',
+        encryption: 'AES-256',
+        isActive: true
       },
       {
-        userId: 'user-2',
-        nodeId: 'node-3',
+        name: 'EU-West Config',
+        nodeId: euWestNode.id,
         protocol: 'tcp',
-        address: 'eu-west-1.vpn.example.com',
         port: 443,
-        path: '/eu-west',
-        serverName: 'EU-West Config'
+        dns: '1.1.1.1',
+        encryption: 'AES-256',
+        isActive: true
       },
       {
-        userId: 'user-2',
-        nodeId: 'node-4',
+        name: 'EU-East Config',
+        nodeId: euEastNode.id,
         protocol: 'udp',
-        address: 'eu-east-1.vpn.example.com',
         port: 1194,
-        path: '/eu-east',
-        serverName: 'EU-East Config'
+        dns: '8.8.8.8',
+        encryption: 'AES-256',
+        isActive: true
       }
     ]);
 
     await orderRepository.save([
       {
-        userId: 'user-1',
-        subscriptionPlanId: 'plan-monthly',
+        userId: adminUser.id,
+        orderId: 'ORD-001',
+        subscriptionPlanId: monthlyPlan.id,
         amount: 19.99,
+        totalAmount: 19.99,
         paymentMethod: OrderPaymentMethod.ALIPAY,
         status: OrderStatus.COMPLETED,
+        planName: monthlyPlan.name,
         payUrl: 'pay-url-1',
         paymentTransactionId: 'txn-1'
       },
       {
-        userId: 'user-2',
-        subscriptionPlanId: 'plan-3months',
+        userId: testUser.id,
+        orderId: 'ORD-002',
+        subscriptionPlanId: quarterlyPlan.id,
         amount: 49.99,
+        totalAmount: 49.99,
         paymentMethod: OrderPaymentMethod.WECHAT_PAY,
         status: OrderStatus.COMPLETED,
+        planName: quarterlyPlan.name,
         payUrl: 'pay-url-2',
         paymentTransactionId: 'txn-2'
       },
       {
-        userId: 'user-1',
-        subscriptionPlanId: 'plan-1year',
+        userId: adminUser.id,
+        orderId: 'ORD-003',
+        subscriptionPlanId: yearlyPlan.id,
         amount: 149.99,
+        totalAmount: 149.99,
         paymentMethod: OrderPaymentMethod.ALIPAY,
         status: OrderStatus.COMPLETED,
+        planName: yearlyPlan.name,
         payUrl: 'pay-url-3',
         paymentTransactionId: 'txn-3'
       },
       {
-        userId: 'user-3',
-        subscriptionPlanId: 'plan-monthly',
+        userId: demoUser.id,
+        orderId: 'ORD-004',
+        subscriptionPlanId: monthlyPlan.id,
         amount: 19.99,
+        totalAmount: 19.99,
         paymentMethod: OrderPaymentMethod.ALIPAY,
         status: OrderStatus.PENDING,
+        planName: monthlyPlan.name,
         payUrl: 'pay-url-4',
         paymentTransactionId: 'txn-4'
       }
@@ -276,29 +295,32 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
 
     await userSubscriptionRepository.save([
       {
-        userId: 'user-1',
-        subscriptionPlanId: 'plan-monthly',
+        userId: adminUser.id,
+        subscriptionPlanId: monthlyPlan.id,
         totalCost: 19.99,
         status: SubscriptionStatus.ACTIVE,
-        endDate: '2026-07-11',
+        startDate: new Date('2026-06-11'),
+        endDate: new Date('2026-07-11'),
         trafficUsed: 0,
         trafficLimit: 10240
       },
       {
-        userId: 'user-2',
-        subscriptionPlanId: 'plan-monthly',
+        userId: testUser.id,
+        subscriptionPlanId: monthlyPlan.id,
         totalCost: 19.99,
         status: SubscriptionStatus.EXPIRED,
-        endDate: '2026-05-11',
+        startDate: new Date('2026-04-11'),
+        endDate: new Date('2026-05-11'),
         trafficUsed: 5120,
         trafficLimit: 10240
       },
       {
-        userId: 'user-3',
-        subscriptionPlanId: 'plan-1year',
+        userId: demoUser.id,
+        subscriptionPlanId: yearlyPlan.id,
         totalCost: 149.99,
         status: SubscriptionStatus.ACTIVE,
-        endDate: '2027-06-11',
+        startDate: new Date('2026-06-11'),
+        endDate: new Date('2027-06-11'),
         trafficUsed: 0,
         trafficLimit: 102400
       }
@@ -306,30 +328,33 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
 
     await connectionLogRepository.save([
       {
-        userId: 'user-1',
-        nodeId: 'node-1',
+        userId: adminUser.id,
+        nodeId: usWestNode.id,
         connectAt: new Date(),
-        disconnectAt: '2026-06-10 10:05:00',
+        disconnectAt: new Date('2026-06-10T10:05:00'),
         duration: 300,
-        traffic: 1024,
+        ip: '192.168.1.100',
+        protocol: 'tcp',
         status: 'CONNECTED'
       },
       {
-        userId: 'user-2',
-        nodeId: 'node-3',
+        userId: testUser.id,
+        nodeId: euWestNode.id,
         connectAt: new Date(),
-        disconnectAt: '2026-06-09 16:00:00',
+        disconnectAt: new Date('2026-06-09T16:00:00'),
         duration: 1800,
-        traffic: 2048,
+        ip: '192.168.1.150',
+        protocol: 'tcp',
         status: 'CONNECTED'
       },
       {
-        userId: 'user-1',
-        nodeId: 'node-2',
+        userId: adminUser.id,
+        nodeId: usEastNode.id,
         connectAt: new Date(),
         disconnectAt: null,
         duration: 0,
-        traffic: 0,
+        ip: '192.168.1.100',
+        protocol: 'udp',
         status: 'CONNECTING'
       }
     ]);
@@ -339,7 +364,7 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
         level: LogLevel.INFO,
         message: 'User login successful',
         source: LogSource.SYSTEM,
-        userId: 'user-1',
+        userId: adminUser.id,
         ipAddress: '192.168.1.100'
       },
       {
@@ -367,7 +392,7 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
         level: LogLevel.DEBUG,
         message: 'User subscription check',
         source: LogSource.SYSTEM,
-        userId: 'user-2',
+        userId: testUser.id,
         ipAddress: '192.168.1.150'
       }
     ]);
@@ -380,20 +405,21 @@ export async function runSeed(dataSource: DataSource): Promise<void> {
 }
 
 async function checkIfDataExists(dataSource: DataSource): Promise<boolean> {
-  const tablesToCheck = [
-    'subscription_plans',
-    'users',
-    'nodes',
-    'orders',
-    'user_subscriptions',
-    'vpn_configurations',
-    'connection_logs',
-    'system_logs'
+  const entitiesToCheck = [
+    SubscriptionPlan,
+    User,
+    Node,
+    Order,
+    UserSubscription,
+    VPNConfiguration,
+    ConnectionLog,
+    SystemLog,
   ];
 
-  for (const table of tablesToCheck) {
+  for (const entity of entitiesToCheck) {
+    const table = dataSource.getMetadata(entity).tablePath;
     const result = await dataSource.query(
-      `SELECT EXISTS (SELECT 1 FROM ${table} WHERE 1=1) as exists`
+      `SELECT EXISTS (SELECT 1 FROM "${table}" WHERE 1=1) as exists`
     );
     if (result && result[0] && result[0].exists) {
       console.log(`Table ${table} already has data.`);

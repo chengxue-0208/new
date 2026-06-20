@@ -1,17 +1,17 @@
-import { createConnection, DataSource } from 'typeorm';
-import { runSeed } from '../src/seed';
+import { ConfigService } from '@nestjs/config';
+import { config as loadEnv } from 'dotenv';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { createDatabaseOptions } from './config/database.config';
+import { runSeed } from './seed';
 
 async function runSeedScript() {
-  const dataSource = new DataSource({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'admin',
-    password: 'admin1234',
-    database: 'vpn_db',
-    entities: ['./src/**/*.entity.ts'],
+  loadEnv();
+
+  const configService = new ConfigService(process.env);
+  const dataSource = new DataSource(createDatabaseOptions(configService, {
     synchronize: false,
-  });
+    logging: false,
+  }) as DataSourceOptions);
 
   try {
     await dataSource.initialize();
