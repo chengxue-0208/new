@@ -3,8 +3,9 @@ import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconf
 import { useState } from 'react';
 import { SearchOutlined, EditOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { InputNumber } from 'antd';
 import api from '../services/api';
+
+type NumericValue = number | string | null | undefined;
 
 interface Order {
   id: string;
@@ -14,9 +15,9 @@ interface Order {
   subscriptionPlanId: string;
   planName: string;
   status: string;
-  totalAmount: number;
-  paidAmount: number;
-  discountAmount: number;
+  totalAmount: NumericValue;
+  paidAmount: NumericValue;
+  discountAmount: NumericValue;
   pointsUsed: number;
   pointsEarned: number;
   paymentMethod: string;
@@ -31,6 +32,13 @@ interface OrderFormData {
   paymentTime?: Date;
   transactionId?: string;
 }
+
+const toNumber = (value: NumericValue, fallback = 0): number => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : fallback;
+};
+
+const formatCurrency = (value: NumericValue): string => `¥${toNumber(value).toFixed(2)}`;
 
 export default function Orders() {
   const [searchText, setSearchText] = useState('');
@@ -123,14 +131,14 @@ export default function Orders() {
         {
           title: '总金额',
           render: (_: any, order: Order) => (
-            <span>¥{order.totalAmount.toFixed(2)}</span>
+            <span>{formatCurrency(order.totalAmount)}</span>
           ),
         },
         {
           title: '实付',
           render: (_: any, order: Order) => (
             <span style={{ color: '#52c41a', fontWeight: 'bold' }}>
-              ¥{order.paidAmount.toFixed(2)}
+              {formatCurrency(order.paidAmount)}
             </span>
           ),
         },
@@ -144,7 +152,7 @@ export default function Orders() {
           title: '优惠金额',
           render: (_: any, order: Order) => (
             <span style={{ color: '#ff4d4f' }}>
-              -¥{order.discountAmount.toFixed(2)}
+              -{formatCurrency(order.discountAmount)}
             </span>
           ),
         },

@@ -6,30 +6,48 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InputNumber } from 'antd';
 import api from '../services/api';
 
-const { TextArea } = Input;
-
 interface Node {
   id: string;
   name: string;
   region: string;
-  ipAddress: string;
-  serverAddress?: string;
-  port?: number;
+  protocol: 'vless' | 'vmess' | 'trojan' | 'shadowsocks';
+  address: string;
+  port: number;
+  uuid: string;
+  security: 'reality' | 'tls' | 'none';
+  sni?: string;
+  encryption: string;
+  fp?: string;
+  type: 'tcp' | 'ws' | 'grpc';
+  host?: string;
+  path?: string;
   status: 'online' | 'offline' | 'maintenance';
   statusMessage?: string;
   uptime: number;
+  delay: number;
   load: number;
   maxConnections: number;
   currentConnections: number;
   bandwidth: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface NodeFormData {
   name: string;
   region: string;
-  ipAddress: string;
-  serverAddress?: string;
-  port?: number;
+  protocol: Node['protocol'];
+  address: string;
+  port: number;
+  uuid: string;
+  security: Node['security'];
+  sni?: string;
+  encryption: string;
+  fp?: string;
+  type: Node['type'];
+  host?: string;
+  path?: string;
+  status: Node['status'];
   maxConnections: number;
 }
 
@@ -37,6 +55,28 @@ const toNumber = (value: unknown, fallback = 0): number => {
   const num = Number(value);
   return Number.isFinite(num) ? num : fallback;
 };
+
+const getNodes = (payload: any): Node[] => {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+  return [];
+};
+
+const getHealthData = (payload: any) => payload?.data || payload;
+
+const getDefaultNodeValues = (): Partial<NodeFormData> => ({
+  protocol: 'vless',
+  port: 443,
+  security: 'tls',
+  encryption: 'none',
+  type: 'ws',
+  status: 'online',
+  maxConnections: 10,
+});
 
 export default function Nodes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,7 +114,7 @@ export default function Nodes() {
   const healthMutation = useMutation({
     mutationFn: () => api.get('/nodes/health'),
     onSuccess: (data: any) => {
-      setHealthData(data as any);
+      setHealthData(getHealthData(data));
       setIsHealthModalOpen(true);
     },
   });
@@ -84,9 +124,7 @@ export default function Nodes() {
   const handleAdd = () => {
     setEditNode(null);
     form.resetFields();
-    form.setFieldsValue({
-      maxConnections: 10,
-    });
+    form.setFieldsValue(getDefaultNodeValues());
     setIsModalOpen(true);
   };
 
@@ -95,9 +133,18 @@ export default function Nodes() {
     form.setFieldsValue({
       name: node.name,
       region: node.region,
-      ipAddress: node.ipAddress,
-      serverAddress: node.serverAddress,
+      protocol: node.protocol,
+      address: node.address,
       port: node.port,
+      uuid: node.uuid,
+      security: node.security,
+      sni: node.sni,
+      encryption: node.encryption,
+      fp: node.fp,
+      type: node.type,
+      host: node.host,
+      path: node.path,
+      status: node.status,
       maxConnections: node.maxConnections,
     });
     setIsModalOpen(true);
@@ -116,6 +163,8 @@ export default function Nodes() {
       title: '节点ID',
       dataIndex: 'id',
       key: 'id',
+      width: 220,
+      ellipsis: true,
     },
     {
       title: '节点名称',
@@ -142,13 +191,42 @@ export default function Nodes() {
       },
     },
     {
+      title: '协议',
+      dataIndex: 'protocol',
+      key: 'protocol',
+      render: (protocol: string) => <Tag color="blue">{protocol?.toUpperCase()}</Tag>,
+    },
+    {
+      title: '传输',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type: string) => <Tag color="purple">{type?.toUpperCase()}</Tag>,
+    },
+    {
+      title: '安全',
+      dataIndex: 'security',
+      key: 'security',
+      render: (security: string) => <Tag color={security === 'none' ? 'default' : 'gold'}>{security}</Tag>,
+    },
+    {
       title: '服务器',
       key: 'server',
       render: (_: any, node: Node) => (
-        <Tooltip title={node.ipAddress}>
-          <span>{node.serverAddress || node.ipAddress}</span>
+        <Tooltip title={`${node.address}:${node.port}`}>
+          <span>{node.address}:{node.port}</span>
         </Tooltip>
       ),
+    },
+    {
+      title: 'SNI / Host',
+      key: 'host',
+      render: (_: any, node: Node) => node.sni || node.host || '-',
+    },
+    {
+      title: '延迟',
+      dataIndex: 'delay',
+      key: 'delay',
+      render: (delay: number | string) => `${toNumber(delay)} ms`,
     },
     {
       title: '负载',
@@ -256,9 +334,10 @@ export default function Nodes() {
       <div className="cyber-table">
         <Table
           columns={columns}
-          dataSource={data?.data || []}
+          dataSource={getNodes(data)}
           rowKey="id"
           loading={isLoading}
+          scroll={{ x: 1300 }}
         />
       </div>
 
@@ -272,6 +351,8 @@ export default function Nodes() {
           form.resetFields();
         }}
         className="cyber-modal"
+        width={720}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       >
         <Form
           form={form}
@@ -289,39 +370,124 @@ export default function Nodes() {
           <Form.Item
             name="region"
             label="区域"
-            rules={[{ required: true, message: '请选择区域' }]}
+            rules={[{ required: true, message: '请输入区域' }]}
           >
-            <Select
-              className="cyber-select"
-              placeholder="请选择区域"
-            >
-              <Select.Option value="asia">亚洲</Select.Option>
-              <Select.Option value="europe">欧洲</Select.Option>
-              <Select.Option value="north_america">北美</Select.Option>
-              <Select.Option value="south_america">南美</Select.Option>
+            <Input className="cyber-input" placeholder="例如: Hong Kong" />
+          </Form.Item>
+
+          <Form.Item
+            name="protocol"
+            label="协议"
+            rules={[{ required: true, message: '请选择协议' }]}
+          >
+            <Select className="cyber-select" placeholder="请选择协议">
+              <Select.Option value="vless">VLESS</Select.Option>
+              <Select.Option value="vmess">VMess</Select.Option>
+              <Select.Option value="trojan">Trojan</Select.Option>
+              <Select.Option value="shadowsocks">Shadowsocks</Select.Option>
             </Select>
           </Form.Item>
 
           <Form.Item
-            name="ipAddress"
-            label="IP地址"
-            rules={[{ required: true, message: '请输入IP地址' }]}
-          >
-            <Input className="cyber-input" placeholder="例如: 192.168.1.1" />
-          </Form.Item>
-
-          <Form.Item
-            name="serverAddress"
+            name="address"
             label="服务器地址"
+            rules={[{ required: true, message: '请输入服务器地址' }]}
           >
-            <Input className="cyber-input" placeholder="可选，例如: vpn.example.com" />
+            <Input className="cyber-input" placeholder="例如: hk-01.example.com 或 1.1.1.1" />
           </Form.Item>
 
           <Form.Item
             name="port"
             label="端口"
+            rules={[{ required: true, message: '请输入端口' }]}
           >
-            <Input className="cyber-input" placeholder="可选，例如: 443" />
+            <InputNumber
+              min={1}
+              max={65535}
+              style={{ width: '100%' }}
+              className="cyber-input"
+              placeholder="例如: 443"
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="uuid"
+            label="UUID"
+            rules={[{ required: true, message: '请输入UUID' }]}
+          >
+            <Input className="cyber-input" placeholder="例如: ed1e0621-5024-4de9-8673-d8bc2a4fd197" />
+          </Form.Item>
+
+          <Form.Item
+            name="security"
+            label="安全类型"
+            rules={[{ required: true, message: '请选择安全类型' }]}
+          >
+            <Select className="cyber-select" placeholder="请选择安全类型">
+              <Select.Option value="tls">TLS</Select.Option>
+              <Select.Option value="reality">Reality</Select.Option>
+              <Select.Option value="none">None</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="encryption"
+            label="加密方式"
+            rules={[{ required: true, message: '请输入加密方式' }]}
+          >
+            <Input className="cyber-input" placeholder="例如: none" />
+          </Form.Item>
+
+          <Form.Item
+            name="type"
+            label="传输类型"
+            rules={[{ required: true, message: '请选择传输类型' }]}
+          >
+            <Select className="cyber-select" placeholder="请选择传输类型">
+              <Select.Option value="tcp">TCP</Select.Option>
+              <Select.Option value="ws">WebSocket</Select.Option>
+              <Select.Option value="grpc">gRPC</Select.Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="sni"
+            label="SNI"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: dpdns.org" />
+          </Form.Item>
+
+          <Form.Item
+            name="fp"
+            label="指纹"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: chrome" />
+          </Form.Item>
+
+          <Form.Item
+            name="host"
+            label="Host"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: dpdns.org" />
+          </Form.Item>
+
+          <Form.Item
+            name="path"
+            label="Path"
+          >
+            <Input className="cyber-input" placeholder="可选，例如: /proxyip=156.154.245.83" />
+          </Form.Item>
+
+          <Form.Item
+            name="status"
+            label="状态"
+            rules={[{ required: true, message: '请选择状态' }]}
+          >
+            <Select className="cyber-select" placeholder="请选择状态">
+              <Select.Option value="online">在线</Select.Option>
+              <Select.Option value="offline">离线</Select.Option>
+              <Select.Option value="maintenance">维护中</Select.Option>
+            </Select>
           </Form.Item>
 
           <Form.Item
@@ -344,6 +510,7 @@ export default function Nodes() {
         onCancel={() => setIsHealthModalOpen(false)}
         footer={null}
         className="cyber-modal"
+        width={760}
       >
         <div style={{ marginBottom: 16 }}>
           <Space>
@@ -366,11 +533,24 @@ export default function Nodes() {
                 key: 'region',
               },
               {
+                title: '协议',
+                dataIndex: 'protocol',
+                key: 'protocol',
+                render: (protocol: string) => protocol?.toUpperCase() || '-',
+              },
+              {
+                title: '服务器',
+                key: 'server',
+                render: (_: any, node: Node) => `${node.address}:${node.port}`,
+              },
+              {
                 title: '状态',
                 dataIndex: 'status',
                 key: 'status',
                 render: (status: string) => (
-                  <Tag color={status === 'online' ? 'green' : 'red'}>{status === 'online' ? '在线' : '离线'}</Tag>
+                  <Tag color={status === 'online' ? 'green' : status === 'maintenance' ? 'orange' : 'red'}>
+                    {status === 'online' ? '在线' : status === 'maintenance' ? '维护中' : '离线'}
+                  </Tag>
                 ),
               },
               {
