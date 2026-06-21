@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
+import { Node } from '../node/node.entity';
 
 @Injectable()
 export class SubscriptionService {
@@ -10,6 +11,8 @@ export class SubscriptionService {
     private userRepository: Repository<User>,
     @InjectRepository(SubscriptionPlan)
     private planRepository: Repository<SubscriptionPlan>,
+    @InjectRepository(Node)
+    private nodeRepository: Repository<Node>,
   ) {}
 
   async getPlans(): Promise<SubscriptionPlan[]> {
@@ -19,6 +22,43 @@ export class SubscriptionService {
         price: 'ASC',
       }
     });
+  }
+
+  async getSubscribeText(): Promise<string> {
+    const nodes = await this.nodeRepository.find({
+      where: { status: 'online' },
+      order: {
+        region: 'ASC',
+        name: 'ASC',
+      },
+    });
+
+    return nodes.map((node) => this.formatNodeSubscribeLine(node)).join('\n');
+  }
+
+  private formatNodeSubscribeLine(node: Node): string {
+    const queryFields: Array<keyof Pick<Node, 'encryption' | 'security' | 'sni' | 'fp' | 'type' | 'host' | 'path'>> = [
+      'encryption',
+      'security',
+      'sni',
+      'fp',
+      'type',
+      'host',
+      'path',
+    ];
+
+    const query = queryFields
+      .map((field) => {
+        const value = node[field];
+        return value === undefined || value === null || value === '' ? null : `${field}=${value}`;
+      })
+      .filter((item): item is string => item !== null)
+      .join('&');
+
+    const base = `${node.protocol}://${node.uuid}@${node.address}:${node.port}`;
+    const fragment = node.name ? `#${encodeURIComponent(node.name)}` : '';
+
+    return `${base}${query ? `?${query}` : ''}${fragment}`;
   }
 
   async createPlan(planData: Partial<SubscriptionPlan>): Promise<SubscriptionPlan> {

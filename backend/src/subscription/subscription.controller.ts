@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, Header } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -10,6 +10,12 @@ export class SubscriptionController {
   async getPlans() {
     const data = await this.subscriptionService.getPlans();
     return { data };
+  }
+
+  @Get('subscribe')
+  @Header('Content-Type', 'text/plain; charset=utf-8')
+  async getSubscribeText(): Promise<string> {
+    return this.subscriptionService.getSubscribeText();
   }
 
   @Post('plans')
