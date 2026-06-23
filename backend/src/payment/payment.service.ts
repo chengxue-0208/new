@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Order, User, SubscriptionPlan, OrderStatus, OrderPaymentMethod } from '../order/order.entity';
+import { SubscriptionService } from '../subscription/subscription.service';
 
 interface AlipayConfig {
   appId: string;
@@ -42,6 +43,7 @@ export class PaymentService {
     private userRepository: Repository<User>,
     @InjectRepository(SubscriptionPlan)
     private planRepository: Repository<SubscriptionPlan>,
+    private subscriptionService: SubscriptionService,
   ) {}
 
   private getAlipayConfig(): AlipayConfig {
@@ -164,6 +166,7 @@ export class PaymentService {
       planName: plan.name,
       plan: plan.name || plan.type,
       amount: plan.price,
+      totalAmount: plan.price,
       paymentMethod: OrderPaymentMethod[Object.keys(OrderPaymentMethod).find(k => OrderPaymentMethod[k] === paymentMethod) as keyof typeof OrderPaymentMethod] || OrderPaymentMethod.WALLET,
       status: OrderStatus.PENDING,
       discountAmount: 0,
@@ -226,6 +229,7 @@ export class PaymentService {
         paymentTransactionId: tradeNo,
         paidAt: new Date(),
       });
+      await this.activateSubscriptionForPaidOrder(order, 'payment.alipay_callback');
 
         this.logger.log(`Alipay callback processed: ${orderNo}`);
 
@@ -284,6 +288,7 @@ export class PaymentService {
         paymentTransactionId: tradeNo,
         paidAt: new Date(),
       });
+      await this.activateSubscriptionForPaidOrder(order, 'payment.wechat_callback');
 
         this.logger.log(`WeChat Pay callback processed: ${outTradeNo}`);
 
@@ -354,5 +359,17 @@ export class PaymentService {
     } catch (error) {
       return false;
     }
+  }
+
+  private async activateSubscriptionForPaidOrder(order: Order, source: string): Promise<void> {
+    if (!order.subscriptionPlanId) {
+      return;
+    }
+
+    await this.subscriptionService.activatePlanForUser(order.userId, order.subscriptionPlanId, {
+      source,
+      orderId: order.id,
+      orderNo: order.orderId,
+    });
   }
 }

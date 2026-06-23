@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, SubscriptionPlan } from '../subscription-plan/subscription-plan.entity';
+import { UserSubscription, SubscriptionStatus } from '../user-subscription/user-subscription.entity';
 import { Node } from '../node/node.entity';
 
 @Injectable()
@@ -11,6 +12,8 @@ export class SubscriptionService {
     private userRepository: Repository<User>,
     @InjectRepository(SubscriptionPlan)
     private planRepository: Repository<SubscriptionPlan>,
+    @InjectRepository(UserSubscription)
+    private subscriptionRepository: Repository<UserSubscription>,
     @InjectRepository(Node)
     private nodeRepository: Repository<Node>,
   ) {}
@@ -80,41 +83,106 @@ export class SubscriptionService {
       where: { id: userId },
     });
 
-   return {
-      subscriptionStatus: user?.subscriptionStatus || 'EXPIRED',
-      subscriptionExpiresAt: user?.subscriptionExpiresAt,
-      trafficUsed: user?.trafficUsed || 0,
-      trafficLimit: user?.trafficLimit || 0n,
+    if (!user) {
+      return {
+        subscriptionStatus: 'EXPIRED',
+        subscriptionExpiresAt: null,
+        trafficUsed: 0,
+        trafficLimit: 0,
+      };
+    }
+
+    const now = new Date();
+    const expiresAt = user.subscriptionExpiresAt;
+    const isExpired = user.subscriptionStatus === 'ACTIVE' && expiresAt && expiresAt <= now;
+
+    return {
+      subscriptionStatus: isExpired ? 'EXPIRED' : user.subscriptionStatus,
+      subscriptionExpiresAt: expiresAt,
+      trafficUsed: Number(user.trafficUsed || 0),
+      trafficLimit: Number(user.trafficLimit || 0),
     };
   }
 
   async purchase(purchaseData: any, userId: string): Promise<any> {
+    return this.activatePlanForUser(userId, purchaseData.planId, {
+      source: 'subscription.purchase',
+    });
+  }
+
+  async activatePlanForUser(userId: string, planId: string, metadata: Record<string, any> = {}): Promise<any> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
 
     const plan = await this.planRepository.findOne({
-       where: { id: purchaseData.planId },
+       where: { id: planId },
      });
 
     if (!plan) {
       throw new Error('Plan not found');
     }
 
+    const now = new Date();
+    const currentExpiresAt = user.subscriptionExpiresAt ? new Date(user.subscriptionExpiresAt) : null;
+    const renewalBase = user.subscriptionStatus === 'ACTIVE' && currentExpiresAt && currentExpiresAt > now
+      ? currentExpiresAt
+      : now;
+    const endAt = this.calculateSubscriptionEndDate(renewalBase, plan.durationDays);
+
+    await this.subscriptionRepository.update(
+      { userId, status: SubscriptionStatus.ACTIVE },
+      {
+        status: SubscriptionStatus.INACTIVE,
+        deactivatedAt: now,
+      },
+    );
+
+    const subscription = this.subscriptionRepository.create({
+      userId,
+      subscriptionPlanId: plan.id,
+      status: SubscriptionStatus.ACTIVE,
+      startDate: now,
+      endDate: endAt,
+      trafficUsed: 0,
+      trafficLimit: plan.trafficLimit,
+      totalCost: plan.price,
+      activatedAt: now,
+      metadata: {
+        ...metadata,
+        previousExpiresAt: currentExpiresAt,
+      },
+    });
+
+    const savedSubscription = await this.subscriptionRepository.save(subscription);
+
     const newSubscription = {
+      id: savedSubscription.id,
       userId,
       planId: plan.id,
-      startAt: new Date(),
-      endAt: new Date(
-        Date.now() + plan.durationDays * 24 * 60 * 60 * 1000,
-      ),
+      startAt: now,
+      endAt,
       trafficLimit: plan.trafficLimit,
+      status: SubscriptionStatus.ACTIVE,
     };
 
     await this.userRepository.update(userId, {
       subscriptionPlanId: plan.id,
-      subscriptionExpiresAt: newSubscription.endAt,
+      subscriptionExpiresAt: endAt,
       subscriptionStatus: 'ACTIVE',
+      trafficUsed: 0,
+      trafficLimit: plan.trafficLimit,
     });
 
     return newSubscription;
+  }
+
+  private calculateSubscriptionEndDate(baseDate: Date, durationDays: number): Date | null {
+    if (!durationDays || durationDays <= 0) {
+      return null;
+    }
+
+    return new Date(baseDate.getTime() + durationDays * 24 * 60 * 60 * 1000);
   }
 }

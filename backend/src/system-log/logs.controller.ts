@@ -9,7 +9,6 @@ export class LogsController {
 
   @Get()
   async findAll(@Query() query: any) {
-    const result = await this.systemLogsService.findAll(query);
-    return { data: result };
+    return this.systemLogsService.findAll(query);
   }
 }

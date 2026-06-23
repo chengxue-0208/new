@@ -1,18 +1,59 @@
-import { Table, Tag, Input, Select, DatePicker, Space, Button } from 'antd';
+import { Table, Tag, Input, Select, DatePicker, Space, Button, type GetProps } from 'antd';
 import { useState } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import api from '../services/api';
 
+type RangePickerValue = GetProps<typeof DatePicker.RangePicker>['value'];
+
+type LogsResponse = {
+  data: {
+    id: string;
+    level: string;
+    message: string;
+    ip: string;
+    timestamp: string;
+  }[];
+  total: number;
+  page: number;
+  limit: number;
+};
+
 export default function Logs() {
   const [searchText, setSearchText] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
-const [dateRange, setDateRange] = useState<any>(null);
-const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
+  const [dateRange, setDateRange] = useState<RangePickerValue>(null);
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
   const { data, isLoading } = useQuery({
     queryKey: ['logs', pagination.current, pagination.pageSize, searchText, levelFilter, dateRange],
-    queryFn: () => api.get(`/logs?page=${pagination.current}&limit=${pagination.pageSize}&search=${searchText}&level=${levelFilter}&dateFrom=${dateRange?.[0]?.toISOString()}&dateTo=${dateRange?.[1]?.toISOString()}`).then((res: any) => res.data),
+    queryFn: () => {
+      const params: Record<string, string | number> = {
+        page: pagination.current,
+        limit: pagination.pageSize,
+      };
+
+      if (searchText.trim()) {
+        params.search = searchText.trim();
+      }
+
+      if (levelFilter !== 'all') {
+        params.level = levelFilter;
+      }
+
+      const dateFrom = dateRange?.[0]?.toISOString();
+      const dateTo = dateRange?.[1]?.toISOString();
+
+      if (dateFrom) {
+        params.dateFrom = dateFrom;
+      }
+
+      if (dateTo) {
+        params.dateTo = dateTo;
+      }
+
+      return api.get('/logs', { params }).then((res) => res as unknown as LogsResponse);
+    },
   });
 
   const columns = [

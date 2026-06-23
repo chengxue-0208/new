@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm } from 'antd';
+import { Table, Button, Space, Tag, Input, Modal, Form, Select, Tooltip, Popconfirm, message } from 'antd';
 import { useState } from 'react';
-import { PlusOutlined, EditOutlined, DeleteOutlined, DashboardOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, DashboardOutlined, ImportOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { InputNumber } from 'antd';
 import api from '../services/api';
@@ -78,6 +78,67 @@ const getDefaultNodeValues = (): Partial<NodeFormData> => ({
   maxConnections: 10,
 });
 
+const getRawQueryValue = (query: string, key: string): string | undefined => {
+  const pairs = query.replace(/^\?/, '').split('&').filter(Boolean);
+  const pair = pairs.find((item) => item.split('=')[0] === key);
+  return pair?.split('=').slice(1).join('=');
+};
+
+const normalizeNodeProtocol = (protocol: string): Node['protocol'] => {
+  const value = protocol.replace(':', '').toLowerCase();
+  if (['vless', 'vmess', 'trojan', 'shadowsocks'].includes(value)) {
+    return value as Node['protocol'];
+  }
+  throw new Error(`暂不支持 ${value || '未知'} 协议`);
+};
+
+const normalizeNodeSecurity = (security: string | null): Node['security'] => {
+  const value = (security || 'none').toLowerCase();
+  return ['reality', 'tls', 'none'].includes(value) ? value as Node['security'] : 'none';
+};
+
+const normalizeNodeType = (type: string | null): Node['type'] => {
+  const value = (type || 'tcp').toLowerCase();
+  return ['tcp', 'ws', 'grpc'].includes(value) ? value as Node['type'] : 'tcp';
+};
+
+const parseNodeUrl = (value: string): NodeFormData => {
+  const trimmedValue = value.trim();
+  if (!trimmedValue) {
+    throw new Error('剪切板内容为空');
+  }
+
+  const parsedUrl = new URL(trimmedValue);
+  const protocol = normalizeNodeProtocol(parsedUrl.protocol);
+  const port = Number(parsedUrl.port);
+
+  if (!parsedUrl.username || !parsedUrl.hostname || !Number.isInteger(port)) {
+    throw new Error('节点链接缺少 UUID、地址或端口');
+  }
+
+  const params = parsedUrl.searchParams;
+  const name = decodeURIComponent(parsedUrl.hash.replace(/^#/, '')) || parsedUrl.hostname;
+
+  return {
+    ...getDefaultNodeValues(),
+    name,
+    region: 'Imported',
+    protocol,
+    uuid: parsedUrl.username,
+    address: parsedUrl.hostname,
+    port,
+    encryption: params.get('encryption') || 'none',
+    security: normalizeNodeSecurity(params.get('security')),
+    sni: params.get('sni') || undefined,
+    fp: params.get('fp') || undefined,
+    type: normalizeNodeType(params.get('type')),
+    host: params.get('host') || undefined,
+    path: getRawQueryValue(parsedUrl.search, 'path') || params.get('path') || undefined,
+    status: 'online',
+    maxConnections: 10,
+  };
+};
+
 export default function Nodes() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
@@ -101,6 +162,17 @@ export default function Nodes() {
       setIsHealthModalOpen(false);
       setEditNode(null);
       form.resetFields();
+    },
+  });
+
+  const importMutation = useMutation({
+    mutationFn: (values: NodeFormData) => api.post('/nodes', values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['nodes'] });
+      message.success('节点已从剪切板导入');
+    },
+    onError: (error: any) => {
+      message.error(error.response?.data?.message || error.message || '节点导入失败');
     },
   });
 
@@ -156,6 +228,20 @@ export default function Nodes() {
 
   const handleCheckHealth = () => {
     healthMutation.mutate();
+  };
+
+  const handleImportFromClipboard = async () => {
+    try {
+      if (!navigator.clipboard?.readText) {
+        throw new Error('当前浏览器不支持读取剪切板');
+      }
+
+      const clipboardText = await navigator.clipboard.readText();
+      const nodeData = parseNodeUrl(clipboardText);
+      importMutation.mutate(nodeData);
+    } catch (error: any) {
+      message.error(error.message || '无法解析剪切板节点信息');
+    }
   };
 
   const columns = [
@@ -327,6 +413,15 @@ export default function Nodes() {
             className="cyber-btn-secondary"
           >
             健康检查
+          </Button>
+          <Button
+            type="default"
+            icon={<ImportOutlined />}
+            onClick={handleImportFromClipboard}
+            loading={importMutation.isPending}
+            className="cyber-btn-secondary"
+          >
+            从剪切板导入
           </Button>
         </Space>
       </div>

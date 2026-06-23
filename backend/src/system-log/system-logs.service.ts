@@ -21,19 +21,19 @@ export class SystemLogsService {
     const {
       page = 1,
       limit = 10,
-      level,
-      source,
-      startDate,
-      endDate,
-      dateFrom,
-      dateTo,
-      search,
     } = query;
+    const level = this.normalizeQueryValue(query.level);
+    const source = this.normalizeQueryValue(query.source);
+    const search = this.normalizeQueryValue(query.search);
+    const from = this.normalizeDateValue(query.startDate) || this.normalizeDateValue(query.dateFrom);
+    const to = this.normalizeDateValue(query.endDate) || this.normalizeDateValue(query.dateTo);
+    const pageNumber = this.normalizePositiveInteger(page, 1);
+    const limitNumber = this.normalizePositiveInteger(limit, 10);
 
     const queryBuilder = this.logRepository.createQueryBuilder('log');
 
-    if (level && level !== 'all') {
-      queryBuilder.andWhere('log.level = :level', { level: String(level).toUpperCase() });
+    if (level) {
+      queryBuilder.andWhere('log.level = :level', { level: level.toUpperCase() });
     }
 
     if (source) {
@@ -44,8 +44,6 @@ export class SystemLogsService {
       queryBuilder.andWhere('log.message ILIKE :search', { search: `%${search}%` });
     }
 
-    const from = startDate || dateFrom;
-    const to = endDate || dateTo;
     if (from || to) {
       queryBuilder.andWhere('log.createdAt BETWEEN :startDate AND :endDate', {
         startDate: from || new Date(0).toISOString(),
@@ -55,8 +53,8 @@ export class SystemLogsService {
 
     const [data, total] = await queryBuilder
       .orderBy('log.createdAt', 'DESC')
-      .skip((page - 1) * limit)
-      .take(limit)
+      .skip((pageNumber - 1) * limitNumber)
+      .take(limitNumber)
       .getManyAndCount();
 
     const mappedData = data.map((item) => ({
@@ -74,9 +72,38 @@ export class SystemLogsService {
     return {
       data: mappedData,
       total,
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page: pageNumber,
+      limit: limitNumber,
     };
+  }
+
+  private normalizeQueryValue(value: unknown): string | undefined {
+    if (value === undefined || value === null) {
+      return undefined;
+    }
+
+    const normalized = String(value).trim();
+    const lowerValue = normalized.toLowerCase();
+    if (!normalized || lowerValue === 'undefined' || lowerValue === 'null' || lowerValue === 'all') {
+      return undefined;
+    }
+
+    return normalized;
+  }
+
+  private normalizeDateValue(value: unknown): string | undefined {
+    const normalized = this.normalizeQueryValue(value);
+    if (!normalized) {
+      return undefined;
+    }
+
+    const timestamp = Date.parse(normalized);
+    return Number.isNaN(timestamp) ? undefined : new Date(timestamp).toISOString();
+  }
+
+  private normalizePositiveInteger(value: unknown, fallback: number): number {
+    const numberValue = Number(value);
+    return Number.isInteger(numberValue) && numberValue > 0 ? numberValue : fallback;
   }
 
   async findOne(id: string): Promise<SystemLog> {

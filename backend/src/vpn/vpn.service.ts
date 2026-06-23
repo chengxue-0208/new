@@ -20,8 +20,22 @@ export class VpnService {
   async connect(userId: string, connectionData: any): Promise<any> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
-    if (!user || user.subscriptionStatus !== 'ACTIVE') {
+    if (!user) {
       throw new Error('Subscription expired');
+    }
+
+    const now = new Date();
+    if (user.subscriptionStatus !== 'ACTIVE' || (user.subscriptionExpiresAt && user.subscriptionExpiresAt <= now)) {
+      if (user.subscriptionStatus === 'ACTIVE') {
+        await this.userRepository.update(userId, { subscriptionStatus: 'EXPIRED' });
+      }
+      throw new Error('Subscription expired');
+    }
+
+    const trafficUsed = Number(user.trafficUsed || 0);
+    const trafficLimit = Number(user.trafficLimit || 0);
+    if (trafficLimit > 0 && trafficUsed >= trafficLimit) {
+      throw new Error('Traffic limit exceeded');
     }
 
     const node = await this.nodeRepository.findOne({
